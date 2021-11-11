@@ -11,7 +11,7 @@ message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
 set(CMAKE_DEBUG_POSTFIX "_d")
 
 # Check C++11 support
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS OFF)
 cmake_policy(SET CMP0057 NEW) # enable IN_LIST operator
@@ -176,8 +176,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   find_package(Backward)
-  message(STATUS "BACKWARD_LIBRARIES: ${BACKWARD_LIBRARIES}")
-  target_link_libraries(${PROJECT_NAME} PUBLIC Backward::Backward)
+  if(Backward_FOUND)
+    message(STATUS "BACKWARD_LIBRARIES: ${BACKWARD_LIBRARIES}")
+    target_link_libraries(${PROJECT_NAME} PUBLIC Backward::Backward)
+  endif()
 endif()
 
 # TODO: OpenSSL is used only in System.cc #include <openssl/md5.h>, but then MD5 is never used.
