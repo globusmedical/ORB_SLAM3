@@ -20,6 +20,9 @@
 #ifndef FRAME_H
 #define FRAME_H
 
+#include <array>
+#include <memory>
+
 #include<vector>
 
 #include "Thirdparty/DBoW2/DBoW2/BowVector.h"
@@ -186,7 +189,7 @@ public:
     // Keypoints are assigned to cells in a grid to reduce matching complexity when projecting MapPoints.
     static float mfGridElementWidthInv;
     static float mfGridElementHeightInv;
-    std::vector<std::size_t> mGrid[FRAME_GRID_COLS][FRAME_GRID_ROWS];
+    std::vector< std::vector <std::vector<size_t> > > mGrid;
 
 
     // Camera pose.
@@ -293,7 +296,7 @@ public:
     std::vector<cv::Mat> mvStereo3Dpoints;
 
     //Grid for the right image
-    std::vector<std::size_t> mGridRight[FRAME_GRID_COLS][FRAME_GRID_ROWS];
+    std::vector< std::vector <std::vector<size_t> > > mGridRight;
 
     cv::Mat mTlr, mRlr, mtlr, mTrl;
     cv::Matx34f mTrlx, mTlrx;

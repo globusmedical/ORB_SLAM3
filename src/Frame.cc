@@ -44,6 +44,12 @@ cv::BFMatcher Frame::BFmatcher = cv::BFMatcher(cv::NORM_HAMMING);
 
 Frame::Frame(): mpcpi(NULL), mpImuPreintegrated(NULL), mpPrevFrame(NULL), mpImuPreintegratedFrame(NULL), mpReferenceKF(static_cast<KeyFrame*>(NULL)), mbImuPreintegrated(false)
 {
+    mGrid.resize(FRAME_GRID_COLS);
+    if(Nleft != -1) mGridRight.resize(FRAME_GRID_COLS);
+    for(unsigned int i=0; i<FRAME_GRID_COLS;i++) {
+	mGrid[i].resize(FRAME_GRID_ROWS);
+	if(Nleft != -1) mGridRight[i].resize(FRAME_GRID_ROWS);
+    }
 #ifdef REGISTER_TIMES
     mTimeStereoMatch = 0;
     mTimeORB_Ext = 0;
@@ -60,6 +66,7 @@ Frame::Frame(const Frame &frame)
      mvDepth(frame.mvDepth), mBowVec(frame.mBowVec), mFeatVec(frame.mFeatVec),
      mDescriptors(frame.mDescriptors.clone()), mDescriptorsRight(frame.mDescriptorsRight.clone()),
      mvpMapPoints(frame.mvpMapPoints), mvbOutlier(frame.mvbOutlier), mImuCalib(frame.mImuCalib), mnCloseMPs(frame.mnCloseMPs),
+     mGrid(frame.mGrid),
      mpImuPreintegrated(frame.mpImuPreintegrated), mpImuPreintegratedFrame(frame.mpImuPreintegratedFrame), mImuBias(frame.mImuBias),
      mnId(frame.mnId), mpReferenceKF(frame.mpReferenceKF), mnScaleLevels(frame.mnScaleLevels),
      mfScaleFactor(frame.mfScaleFactor), mfLogScaleFactor(frame.mfLogScaleFactor),
@@ -68,16 +75,16 @@ Frame::Frame(const Frame &frame)
      mpCamera(frame.mpCamera), mpCamera2(frame.mpCamera2), Nleft(frame.Nleft), Nright(frame.Nright),
      monoLeft(frame.monoLeft), monoRight(frame.monoRight), mvLeftToRightMatch(frame.mvLeftToRightMatch),
      mvRightToLeftMatch(frame.mvRightToLeftMatch), mvStereo3Dpoints(frame.mvStereo3Dpoints),
+     mGridRight(frame.mGridRight),
      mTlr(frame.mTlr.clone()), mRlr(frame.mRlr.clone()), mtlr(frame.mtlr.clone()), mTrl(frame.mTrl.clone()),
      mTrlx(frame.mTrlx), mTlrx(frame.mTlrx), mOwx(frame.mOwx), mRcwx(frame.mRcwx), mtcwx(frame.mtcwx)
 {
-    for(int i=0;i<FRAME_GRID_COLS;i++)
-        for(int j=0; j<FRAME_GRID_ROWS; j++){
-            mGrid[i][j]=frame.mGrid[i][j];
-            if(frame.Nleft > 0){
-                mGridRight[i][j] = frame.mGridRight[i][j];
-            }
-        }
+    mGrid.resize(FRAME_GRID_COLS);
+    if(Nleft != -1) mGridRight.resize(FRAME_GRID_COLS);
+    for(unsigned int i=0; i<FRAME_GRID_COLS;i++) {
+	mGrid[i].resize(FRAME_GRID_ROWS);
+	if(Nleft != -1) mGridRight[i].resize(FRAME_GRID_ROWS);
+    }
 
     if(!frame.mTcw.empty())
         SetPose(frame.mTcw);
@@ -384,13 +391,18 @@ void Frame::AssignFeaturesToGrid()
 
     int nReserve = 0.5f*N/(nCells);
 
-    for(unsigned int i=0; i<FRAME_GRID_COLS;i++)
+    mGrid.resize(FRAME_GRID_COLS);
+    if(Nleft != -1) mGridRight.resize(FRAME_GRID_COLS);
+    for(unsigned int i=0; i<FRAME_GRID_COLS;i++) {
+	mGrid[i].resize(FRAME_GRID_ROWS);
+	if(Nleft != -1) mGridRight[i].resize(FRAME_GRID_ROWS);
         for (unsigned int j=0; j<FRAME_GRID_ROWS;j++){
             mGrid[i][j].reserve(nReserve);
             if(Nleft != -1){
                 mGridRight[i][j].reserve(nReserve);
             }
         }
+    }
 
 
 
