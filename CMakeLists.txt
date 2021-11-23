@@ -59,9 +59,9 @@ IF(WIN32)
   # uncomment only one of the lines below:
   # because there is no DLL API in the code,
   # we either have to build STATIC libraries,
-  set(ORB_SLAM3_LIB_TYPE STATIC)
+  #set(ORB_SLAM3_LIB_TYPE STATIC)
   # or we have to export all symbols from all SHARED libraries
-  #set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
   # Note that the ideal solution would be to add an export API to the relevant classes.
 ENDIF(WIN32)
 
@@ -173,7 +173,7 @@ endif()
 
 find_package(Boost REQUIRED COMPONENTS serialization)
 message(STATUS "Boost_LIBRARIES: ${Boost_LIBRARIES}")
-target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${Boost_LIBRARIES})
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   find_package(Backward)
