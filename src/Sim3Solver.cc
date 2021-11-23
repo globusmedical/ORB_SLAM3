@@ -30,6 +30,8 @@
 
 #include "Thirdparty/DBoW2/DUtils/Random.h"
 
+using namespace std;
+
 namespace ORB_SLAM3
 {
 
