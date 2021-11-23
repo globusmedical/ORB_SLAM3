@@ -33,9 +33,9 @@
 
 #include <mutex>
 #include <chrono>
-#include <include/CameraModels/Pinhole.h>
-#include <include/CameraModels/KannalaBrandt8.h>
-#include <include/MLPnPsolver.h>
+#include <CameraModels/Pinhole.h>
+#include <CameraModels/KannalaBrandt8.h>
+#include <MLPnPsolver.h>
 
 using namespace std;
 

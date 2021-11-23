@@ -24,7 +24,7 @@
 #include "ORBmatcher.h"
 
 #include<thread>
-#include <include/CameraModels/Pinhole.h>
+#include <CameraModels/Pinhole.h>
 
 using namespace std;
 
