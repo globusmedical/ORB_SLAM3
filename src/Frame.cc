@@ -25,6 +25,7 @@
 #include "Converter.h"
 #include "ORBmatcher.h"
 #include "CameraModels/GeometricCamera.h"
+#include "Thirdparty/DBoW2/DBoW2/TemplatedVocabulary.h"
 
 #include <thread>
 #include <CameraModels/Pinhole.h>

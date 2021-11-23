@@ -20,6 +20,7 @@
 #include "Converter.h"
 #include "ORBmatcher.h"
 #include "ImuTypes.h"
+#include "Thirdparty/DBoW2/DBoW2/TemplatedVocabulary.h"
 #include<mutex>
 
 using namespace std;
