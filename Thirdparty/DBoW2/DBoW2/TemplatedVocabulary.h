@@ -421,8 +421,8 @@ protected:
   std::vector<Node> m_nodes;
   
   /// Words of the vocabulary (tree leaves)
-  /// this condition holds: m_words[wid]->word_id == wid
-  std::vector<Node*> m_words;
+  /// this condition holds: m_nodes[m_words[wid]]->word_id == wid
+  std::vector<NodeId> m_words;
   
 };
 
@@ -921,15 +921,14 @@ void TemplatedVocabulary<TDescriptor,F>::createWords()
   {
     m_words.reserve( (int)pow((double)m_k, (double)m_L) );
 
-    typename std::vector<Node>::iterator nit;
-    
-    nit = m_nodes.begin(); // ignore root
-    for(++nit; nit != m_nodes.end(); ++nit)
+    // ignore root
+    for(NodeId nid = 1; nid != m_nodes.size(); ++nid)
     {
-      if(nit->isLeaf())
+      Node& node = m_nodes[nid];
+      if(node.isLeaf())
       {
-        nit->word_id = m_words.size();
-        m_words.push_back( &(*nit) );
+	node.word_id = m_words.size();
+	m_words.push_back(nid);
       }
     }
   }
@@ -948,7 +947,7 @@ void TemplatedVocabulary<TDescriptor,F>::setNodeWeights
   {
     // idf part must be 1 always
     for(unsigned int i = 0; i < NWords; i++)
-      m_words[i]->weight = 1;
+      m_nodes[m_words[i]].weight = 1;
   }
   else if(m_weighting == IDF || m_weighting == TF_IDF)
   {
@@ -985,7 +984,7 @@ void TemplatedVocabulary<TDescriptor,F>::setNodeWeights
     {
       if(Ni[i] > 0)
       {
-        m_words[i]->weight = log((double)NDocs / (double)Ni[i]);
+        m_nodes[m_words[i]].weight = log((double)NDocs / (double)Ni[i]);
       }// else // This cannot occur if using kmeans++
     }
   
@@ -1031,7 +1030,7 @@ float TemplatedVocabulary<TDescriptor,F>::getEffectiveLevels() const
 template<class TDescriptor, class F>
 TDescriptor TemplatedVocabulary<TDescriptor,F>::getWord(WordId wid) const
 {
-  return m_words[wid]->descriptor;
+  return m_nodes[m_words[wid]].descriptor;
 }
 
 // --------------------------------------------------------------------------
@@ -1039,7 +1038,7 @@ TDescriptor TemplatedVocabulary<TDescriptor,F>::getWord(WordId wid) const
 template<class TDescriptor, class F>
 WordValue TemplatedVocabulary<TDescriptor, F>::getWordWeight(WordId wid) const
 {
-  return m_words[wid]->weight;
+  return m_nodes[m_words[wid]].weight;
 }
 
 // --------------------------------------------------------------------------
@@ -1262,7 +1261,7 @@ template<class TDescriptor, class F>
 NodeId TemplatedVocabulary<TDescriptor,F>::getParentNode
   (WordId wid, int levelsup) const
 {
-  NodeId ret = m_words[wid]->id; // node id
+  NodeId ret = m_nodes[m_words[wid]].id; // node id
   while(levelsup > 0 && ret != 0) // ret == 0 --> root
   {
     --levelsup;
@@ -1300,7 +1299,7 @@ void TemplatedVocabulary<TDescriptor,F>::getWordsFromNode
       
       for(cit = child_ids.begin(); cit != child_ids.end(); ++cit)
       {
-        const Node &child_node = m_nodes[*cit];
+        const Node& child_node = m_nodes[*cit];
         
         if(child_node.isLeaf())
           words.push_back(child_node.word_id);
@@ -1318,13 +1317,13 @@ template<class TDescriptor, class F>
 int TemplatedVocabulary<TDescriptor,F>::stopWords(double minWeight)
 {
   int c = 0;
-  typename std::vector<Node*>::iterator wit;
-  for(wit = m_words.begin(); wit != m_words.end(); ++wit)
+  for(NodeId nid : m_words)
   {
-    if((*wit)->weight < minWeight)
+    Node& node = m_nodes[nid];
+    if(node.weight < minWeight)
     {
       ++c;
-      (*wit)->weight = 0;
+      node.weight = 0;
     }
   }
   return c;
@@ -1409,7 +1408,7 @@ bool TemplatedVocabulary<TDescriptor,F>::loadFromTextFile(const std::string &fil
             m_words.resize(wid+1);
 
             m_nodes[nid].word_id = wid;
-            m_words[wid] = &m_nodes[nid];
+            m_words[wid] = nid;
         }
         else
         {
@@ -1548,17 +1547,15 @@ void TemplatedVocabulary<TDescriptor,F>::save(cv::FileStorage &f,
 
   // words
   f << "words" << "[";
-  
-  typename std::vector<Node*>::const_iterator wit;
-  for(wit = m_words.begin(); wit != m_words.end(); wit++)
+
+  for(WordId wid = 0; wid != m_words.size(); ++wid)
   {
-    WordId id = wit - m_words.begin();
     f << "{:";
-    f << "wordId" << (int)id;
-    f << "nodeId" << (int)(*wit)->id;
+    f << "wordId" << (int)wid;
+    f << "nodeId" << (int)m_words[wid];
     f << "}";
   }
-  
+
   f << "]"; // words
 
   f << "}";
@@ -1615,7 +1612,7 @@ void TemplatedVocabulary<TDescriptor,F>::load(const cv::FileStorage &fs,
     NodeId nid = (int)fn[i]["nodeId"];
     
     m_nodes[nid].word_id = wid;
-    m_words[wid] = &m_nodes[nid];
+    m_words[wid] = nid;
   }
 }
 
