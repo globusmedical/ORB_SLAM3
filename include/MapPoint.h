@@ -16,20 +16,15 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ORB_SLAM3_MAPPOINT_H
+#define ORB_SLAM3_MAPPOINT_H
 
-#ifndef MAPPOINT_H
-#define MAPPOINT_H
-
-#include"KeyFrame.h"
-#include"Frame.h"
-#include"Map.h"
-
-#include<opencv2/core/core.hpp>
-#include<mutex>
-
-#include <boost/serialization/serialization.hpp>
-#include <boost/serialization/array.hpp>
-#include <boost/serialization/map.hpp>
+#include <map>
+#include <mutex>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/matx.hpp>
+#include <opencv2/core/types.hpp>
+#include <tuple>
 
 namespace ORB_SLAM3
 {
@@ -182,6 +177,6 @@ protected:
      std::mutex mMutexMap;
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3
 
-#endif // MAPPOINT_H
+#endif // ORB_SLAM3_MAPPOINT_H

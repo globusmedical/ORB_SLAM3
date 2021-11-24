@@ -16,18 +16,19 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "MapDrawer.h"
-#include "MapPoint.h"
+
+#include "Atlas.h"
 #include "KeyFrame.h"
-#include <pangolin/pangolin.h>
-#include <mutex>
+#include "Map.h"
+#include "MapPoint.h"
+
+#include <pangolin/gl/glplatform.h>
 
 using namespace std;
 
 namespace ORB_SLAM3
 {
-
 
 MapDrawer::MapDrawer(Atlas* pAtlas, const string &strSettingPath):mpAtlas(pAtlas)
 {
@@ -511,4 +512,4 @@ void MapDrawer::GetCurrentOpenGLCameraMatrix(pangolin::OpenGlMatrix &M, pangolin
 
 }
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3

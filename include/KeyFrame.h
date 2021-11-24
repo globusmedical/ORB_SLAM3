@@ -16,37 +16,31 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ORB_SLAM3_KEYFRAME_H
+#define ORB_SLAM3_KEYFRAME_H
 
-#ifndef KEYFRAME_H
-#define KEYFRAME_H
-
-#include "MapPoint.h"
+#include "ImuTypes.h"
+#include "ORBVocabulary.h"
 #include "Thirdparty/DBoW2/DBoW2/BowVector.h"
 #include "Thirdparty/DBoW2/DBoW2/FeatureVector.h"
-#include "ORBVocabulary.h"
-#include "ORBextractor.h"
-#include "Frame.h"
-#include "KeyFrameDatabase.h"
-#include "ImuTypes.h"
 
-#include "CameraModels/GeometricCamera.h"
-
+#include <cstddef>
 #include <mutex>
-
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/map.hpp>
-
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/matx.hpp>
+#include <opencv2/core/types.hpp>
+#include <set>
+#include <string>
+#include <vector>
 
 namespace ORB_SLAM3
 {
 
+class Frame;
+class GeometricCamera;
+class KeyFrameDatabase;
 class Map;
 class MapPoint;
-class Frame;
-class KeyFrameDatabase;
-
-class GeometricCamera;
 
 class KeyFrame
 {
@@ -114,17 +108,17 @@ public:
 
     // MapPoint observation functions
     int GetNumberMPs();
-    void AddMapPoint(MapPoint* pMP, const size_t &idx);
+    void AddMapPoint(MapPoint* pMP, const std::size_t &idx);
     void EraseMapPointMatch(const int &idx);
     void EraseMapPointMatch(MapPoint* pMP);
     void ReplaceMapPointMatch(const int &idx, MapPoint* pMP);
     std::set<MapPoint*> GetMapPoints();
     std::vector<MapPoint*> GetMapPointMatches();
     int TrackedMapPoints(const int &minObs);
-    MapPoint* GetMapPoint(const size_t &idx);
+    MapPoint* GetMapPoint(const std::size_t &idx);
 
     // KeyPoint functions
-    std::vector<size_t> GetFeaturesInArea(const float &x, const float  &y, const float  &r, const bool bRight = false) const;
+    std::vector<std::size_t> GetFeaturesInArea(const float &x, const float  &y, const float  &r, const bool bRight = false) const;
     cv::Mat UnprojectStereo(int i);
     cv::Matx31f UnprojectStereo_(int i);
 
@@ -316,7 +310,7 @@ protected:
     ORBVocabulary* mpORBvocabulary;
 
     // Grid over the image to speed up feature matching
-    std::vector< std::vector <std::vector<size_t> > > mGrid;
+    std::vector< std::vector <std::vector<std::size_t> > > mGrid;
 
     std::map<KeyFrame*,int> mConnectedKeyFrameWeights;
     std::vector<KeyFrame*> mvpOrderedConnectedKeyFrames;
@@ -358,7 +352,7 @@ public:
 
     const int NLeft, NRight;
 
-    std::vector< std::vector <std::vector<size_t> > > mGridRight;
+    std::vector< std::vector <std::vector<std::size_t> > > mGridRight;
 
     cv::Mat GetRightPose();
     cv::Mat GetRightPoseInverse();
@@ -369,21 +363,9 @@ public:
 
     cv::Mat imgLeft, imgRight;
 
-    void PrintPointDistribution(){
-        int left = 0, right = 0;
-        int Nlim = (NLeft != -1) ? NLeft : N;
-        for(int i = 0; i < N; i++){
-            if(mvpMapPoints[i]){
-                if(i < Nlim) left++;
-                else right++;
-            }
-        }
-        std::cout << "Point distribution in KeyFrame: left-> " << left << " --- right-> " << right << std::endl;
-    }
-
-
+    void PrintPointDistribution();
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3
 
-#endif // KEYFRAME_H
+#endif // ORB_SLAM3_KEYFRAME_H

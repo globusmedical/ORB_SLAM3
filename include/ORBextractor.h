@@ -16,13 +16,13 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ORBEXTRACTOR_H
-#define ORBEXTRACTOR_H
+#ifndef ORB_SLAM3_ORBEXTRACTOR_H
+#define ORB_SLAM3_ORBEXTRACTOR_H
 
-#include <vector>
 #include <list>
-#include <opencv2/features2d.hpp>
-
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
+#include <vector>
 
 namespace ORB_SLAM3
 {
@@ -108,7 +108,6 @@ protected:
     std::vector<float> mvInvLevelSigma2;
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3
 
-#endif
-
+#endif // ORB_SLAM3_ORBEXTRACTOR_H

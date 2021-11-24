@@ -16,27 +16,27 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ORB_SLAM3_LOCALMAPPING_H
+#define ORB_SLAM3_LOCALMAPPING_H
 
-#ifndef LOCALMAPPING_H
-#define LOCALMAPPING_H
-
-#include "KeyFrame.h"
-#include "Atlas.h"
-#include "LoopClosing.h"
-#include "Tracking.h"
-#include "KeyFrameDatabase.h"
-#include "Initializer.h"
-
+#include <Eigen/Dense>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/matx.hpp>
+#include <list>
 #include <mutex>
-
+#include <fstream>
+#include <string>
 
 namespace ORB_SLAM3
 {
 
+class Atlas;
+class KeyFrame;
+class LoopClosing;
+class Map;
+class MapPoint;
 class System;
 class Tracking;
-class LoopClosing;
-class Atlas;
 
 class LocalMapping
 {
@@ -196,6 +196,6 @@ protected:
     std::ofstream f_lm;
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3
 
-#endif // LOCALMAPPING_H
+#endif // ORB_SLAM3_LOCALMAPPING_H

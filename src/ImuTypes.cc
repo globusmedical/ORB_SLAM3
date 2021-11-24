@@ -17,7 +17,9 @@
 */
 
 #include "ImuTypes.h"
-#include<iostream>
+
+#include <iostream>
+#include <opencv2/core.hpp>
 
 namespace ORB_SLAM3
 {
@@ -516,6 +518,6 @@ Calib::Calib(const Calib &calib)
     CovWalk = calib.CovWalk.clone();
 }
 
-} //namespace IMU
+} // namespace IMU
 
-} //namespace ORB_SLAM2
+} // namespace ORB_SLAM3

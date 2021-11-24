@@ -17,42 +17,34 @@
 */
 
 
-#ifndef OPTIMIZER_H
-#define OPTIMIZER_H
+#ifndef ORB_SLAM3_OPTIMIZER_H
+#define ORB_SLAM3_OPTIMIZER_H
 
-#include "Map.h"
-#include "MapPoint.h"
-#include "KeyFrame.h"
 #include "LoopClosing.h"
-#include "Frame.h"
 
-#include <math.h>
-
-#include "Thirdparty/g2o/g2o/types/types_seven_dof_expmap.h"
-#include "Thirdparty/g2o/g2o/core/sparse_block_matrix.h"
-#include "Thirdparty/g2o/g2o/core/block_solver.h"
-#include "Thirdparty/g2o/g2o/core/optimization_algorithm_levenberg.h"
-#include "Thirdparty/g2o/g2o/core/optimization_algorithm_gauss_newton.h"
-#include "Thirdparty/g2o/g2o/solvers/linear_solver_eigen.h"
-#include "Thirdparty/g2o/g2o/types/types_six_dof_expmap.h"
-#include "Thirdparty/g2o/g2o/core/robust_kernel_impl.h"
-#include "Thirdparty/g2o/g2o/solvers/linear_solver_dense.h"
+#include <Eigen/Dense>
+#include <map>
+#include <set>
+#include <vector>
 
 namespace ORB_SLAM3
 {
 
-class LoopClosing;
+class Frame;
+class KeyFrame;
+class Map;
+class MapPoint;
 
 class Optimizer
 {
 public:
 
     void static BundleAdjustment(const std::vector<KeyFrame*> &vpKF, const std::vector<MapPoint*> &vpMP,
-                                 int nIterations = 5, bool *pbStopFlag=NULL, const unsigned long nLoopKF=0,
+                                 int nIterations = 5, bool *pbStopFlag = nullptr, const unsigned long nLoopKF=0,
                                  const bool bRobust = true);
-    void static GlobalBundleAdjustemnt(Map* pMap, int nIterations=5, bool *pbStopFlag=NULL,
+    void static GlobalBundleAdjustemnt(Map* pMap, int nIterations=5, bool *pbStopFlag = nullptr,
                                        const unsigned long nLoopKF=0, const bool bRobust = true);
-    void static FullInertialBA(Map *pMap, int its, const bool bFixLocal=false, const unsigned long nLoopKF=0, bool *pbStopFlag=NULL, bool bInit=false, float priorG = 1e2, float priorA=1e6, Eigen::VectorXd *vSingVal = NULL, bool *bHess=NULL);
+    void static FullInertialBA(Map *pMap, int its, const bool bFixLocal=false, const unsigned long nLoopKF=0, bool *pbStopFlag = nullptr, bool bInit=false, float priorG = 1e2, float priorA=1e6, Eigen::VectorXd *vSingVal = nullptr, bool *bHess = nullptr);
 
     void static LocalBundleAdjustment(KeyFrame* pKF, bool *pbStopFlag, std::vector<KeyFrame*> &vpNonEnoughOptKFs);
     void static LocalBundleAdjustment(KeyFrame* pKF, bool *pbStopFlag, Map *pMap, int& num_fixedKF, int& num_OptKF, int& num_MPs, int& num_edges);
@@ -118,6 +110,6 @@ public:
     void static InertialOptimization(Map *pMap, Eigen::Matrix3d &Rwg, double &scale);
 };
 
-} //namespace ORB_SLAM3
+} // namespace ORB_SLAM3
 
-#endif // OPTIMIZER_H
+#endif // ORB_SLAM3_OPTIMIZER_H

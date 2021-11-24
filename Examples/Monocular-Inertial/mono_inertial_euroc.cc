@@ -16,7 +16,6 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include <iostream>
 #include <algorithm>
 #include <fstream>
@@ -25,6 +24,7 @@
 #include <sstream>
 
 #include <opencv2/core/core.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 #include <System.h>
 #include "ImuTypes.h"

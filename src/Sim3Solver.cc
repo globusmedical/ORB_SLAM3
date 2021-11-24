@@ -16,25 +16,19 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "Sim3Solver.h"
 
-#include <vector>
-#include <cmath>
-
-#include <opencv2/core/core.hpp>
-#include <opencv2/core/core_c.h>
-
+#include "CameraModels/GeometricCamera.h"
 #include "KeyFrame.h"
-#include "ORBmatcher.h"
-
+#include "MapPoint.h"
 #include "Thirdparty/DBoW2/DUtils/Random.h"
+
+#include <opencv2/calib3d.hpp>
 
 using namespace std;
 
 namespace ORB_SLAM3
 {
-
 
 Sim3Solver::Sim3Solver(KeyFrame *pKF1, KeyFrame *pKF2, const vector<MapPoint *> &vpMatched12, const bool bFixScale,
                        vector<KeyFrame*> vpKeyFrameMatchedMP):
@@ -509,4 +503,4 @@ void Sim3Solver::FromCameraToImage(const vector<cv::Mat> &vP3Dc, vector<cv::Mat>
     }
 }
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3

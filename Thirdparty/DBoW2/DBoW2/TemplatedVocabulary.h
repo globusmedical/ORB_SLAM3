@@ -560,8 +560,8 @@ void TemplatedVocabulary<TDescriptor,F>::create(
   m_words.clear();
   
   // expected_nodes = Sum_{i=0..L} ( k^i )
-	int expected_nodes = 
-		(int)((pow((double)m_k, (double)m_L + 1) - 1)/(m_k - 1));
+        int expected_nodes = 
+                (int)((pow((double)m_k, (double)m_L + 1) - 1)/(m_k - 1));
 
   m_nodes.reserve(expected_nodes); // avoid allocations when creating the tree
   
@@ -644,11 +644,11 @@ void TemplatedVocabulary<TDescriptor,F>::HKmeansStep(NodeId parent_id,
         
   // features associated to each cluster
   std::vector<TDescriptor> clusters;
-	std::vector<std::vector<unsigned int> > groups; // groups[i] = [j1, j2, ...]
-	// j1, j2, ... indices of descriptors associated to cluster i
+        std::vector<std::vector<unsigned int> > groups; // groups[i] = [j1, j2, ...]
+        // j1, j2, ... indices of descriptors associated to cluster i
 
   clusters.reserve(m_k);
-	groups.reserve(m_k);
+        groups.reserve(m_k);
   
   //const int msizes[] = { m_k, descriptors.size() };
   //cv::SparseMat assoc(2, msizes, CV_8U);
@@ -680,8 +680,8 @@ void TemplatedVocabulary<TDescriptor,F>::HKmeansStep(NodeId parent_id,
     {
       // 1. Calculate clusters
 
-			if(first_time)
-			{
+                        if(first_time)
+                        {
         // random sample 
         initiateClusters(descriptors, clusters);
       }
@@ -769,14 +769,14 @@ void TemplatedVocabulary<TDescriptor,F>::HKmeansStep(NodeId parent_id,
         }
       }
 
-			if(goon)
-			{
-				// copy last feature-cluster association
-				last_association = current_association;
-				//last_assoc = assoc.clone();
-			}
-			
-		} // while(goon)
+                        if(goon)
+                        {
+                                // copy last feature-cluster association
+                                last_association = current_association;
+                                //last_assoc = assoc.clone();
+                        }
+                        
+                } // while(goon)
     
   } // if must run kmeans
   
@@ -927,8 +927,8 @@ void TemplatedVocabulary<TDescriptor,F>::createWords()
       Node& node = m_nodes[nid];
       if(node.isLeaf())
       {
-	node.word_id = m_words.size();
-	m_words.push_back(nid);
+        node.word_id = m_words.size();
+        m_words.push_back(nid);
       }
     }
   }
@@ -1074,7 +1074,7 @@ void TemplatedVocabulary<TDescriptor,F>::transform(
   LNorm norm;
   bool must = m_scoring_object->mustNormalize(norm);
 
-	typename std::vector<TDescriptor>::const_iterator fit;
+        typename std::vector<TDescriptor>::const_iterator fit;
 
   if(m_weighting == TF || m_weighting == TF_IDF)
   {
@@ -1336,9 +1336,9 @@ bool TemplatedVocabulary<TDescriptor,F>::loadFromTextFile(const std::string &fil
 {
     std::ifstream f;
     f.open(filename.c_str());
-	
+        
     if(f.eof())
-	return false;
+        return false;
 
     m_words.clear();
     m_nodes.clear();
@@ -1356,7 +1356,7 @@ bool TemplatedVocabulary<TDescriptor,F>::loadFromTextFile(const std::string &fil
     if(m_k<0 || m_k>20 || m_L<1 || m_L>10 || n1<0 || n1>5 || n2<0 || n2>3)
     {
         std::cerr << "Vocabulary loading failure: This is not a correct text file!" << std::endl;
-	return false;
+        return false;
     }
     
     m_scoring = (ScoringType)n1;
@@ -1381,8 +1381,8 @@ bool TemplatedVocabulary<TDescriptor,F>::loadFromTextFile(const std::string &fil
 
         int nid = m_nodes.size();
         m_nodes.resize(m_nodes.size()+1);
-	m_nodes[nid].id = nid;
-	
+        m_nodes[nid].id = nid;
+        
         int pid ;
         ssnode >> pid;
         m_nodes[nid].parent = pid;
@@ -1397,7 +1397,7 @@ bool TemplatedVocabulary<TDescriptor,F>::loadFromTextFile(const std::string &fil
             std::string sElement;
             ssnode >> sElement;
             ssd << sElement << " ";
-	}
+        }
         F::fromString(m_nodes[nid].descriptor, ssd.str());
 
         ssnode >> m_nodes[nid].weight;

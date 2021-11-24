@@ -16,24 +16,20 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ORB_SLAM3_VIEWER_H
+#define ORB_SLAM3_VIEWER_H
 
-#ifndef VIEWER_H
-#define VIEWER_H
-
-#include "FrameDrawer.h"
-#include "MapDrawer.h"
-#include "Tracking.h"
-#include "System.h"
-
+#include <opencv2/core/persistence.hpp>
+#include <string>
 #include <mutex>
 
 namespace ORB_SLAM3
 {
 
-class Tracking;
 class FrameDrawer;
 class MapDrawer;
 class System;
+class Tracking;
 
 class Viewer
 {
@@ -90,9 +86,6 @@ private:
 
 };
 
-}
+} // namespace ORB_SLAM3
 
-
-#endif // VIEWER_H
-	
-
+#endif // ORB_SLAM3_VIEWER_H

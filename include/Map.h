@@ -16,28 +16,21 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ORB_SLAM3_MAP_H
+#define ORB_SLAM3_MAP_H
 
-#ifndef MAP_H
-#define MAP_H
-
-#include "MapPoint.h"
-#include "KeyFrame.h"
-
-#include <set>
-#include <pangolin/pangolin.h>
 #include <mutex>
-
-#include <boost/serialization/base_object.hpp>
-
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
+#include <pangolin/gl/glplatform.h>
+#include <set>
+#include <vector>
 
 namespace ORB_SLAM3
 {
 
-class MapPoint;
 class KeyFrame;
-class Atlas;
-class KeyFrameDatabase;
-class GeometricCamera;
+class MapPoint;
 
 class Map
 {
@@ -160,6 +153,6 @@ protected:
     std::mutex mMutexMap;
 };
 
-} //namespace ORB_SLAM3
+} // namespace ORB_SLAM3
 
-#endif // MAP_H
+#endif // ORB_SLAM3_MAP_H

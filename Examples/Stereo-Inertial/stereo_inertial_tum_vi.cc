@@ -24,6 +24,8 @@
 #include <sstream>
 
 #include <opencv2/core/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 #include <System.h>
 #include "ImuTypes.h"

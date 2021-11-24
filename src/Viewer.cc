@@ -16,11 +16,18 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "Viewer.h"
-#include <pangolin/pangolin.h>
 
-#include <mutex>
+#include "Atlas.h"
+#include "FrameDrawer.h"
+#include "MapDrawer.h"
+#include "System.h"
+#include "Tracking.h"
+
+#include <iostream>
+#include <opencv2/highgui.hpp>
+#include <pangolin/display/display.h>
+#include <pangolin/display/widgets.h>
 
 using namespace std;
 
@@ -372,4 +379,4 @@ void Viewer::SetTrackingPause()
     mbStopTrack = true;
 }
 
-}
+} // namespace ORB_SLAM3

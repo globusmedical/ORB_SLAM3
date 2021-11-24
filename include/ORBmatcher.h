@@ -16,21 +16,22 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ORB_SLAM3_ORBMATCHER_H
+#define ORB_SLAM3_ORBMATCHER_H
 
-#ifndef ORBMATCHER_H
-#define ORBMATCHER_H
-
-#include<vector>
-#include<opencv2/core/core.hpp>
-#include<opencv2/features2d/features2d.hpp>
-
-#include"MapPoint.h"
-#include"KeyFrame.h"
-#include"Frame.h"
-
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/matx.hpp>
+#include <opencv2/core/types.hpp>
+#include <set>
+#include <utility>
+#include <vector>
 
 namespace ORB_SLAM3
 {
+
+class Frame;
+class KeyFrame;
+class MapPoint;
 
 class ORBmatcher
 {    
@@ -110,6 +111,6 @@ protected:
     bool mbCheckOrientation;
 };
 
-}// namespace ORB_SLAM
+} // namespace ORB_SLAM3
 
-#endif // ORBMATCHER_H
+#endif // ORB_SLAM3_ORBMATCHER_H

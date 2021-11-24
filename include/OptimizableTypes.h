@@ -20,15 +20,17 @@
 #define ORB_SLAM3_OPTIMIZABLETYPES_H
 
 #include "Thirdparty/g2o/g2o/core/base_unary_edge.h"
-#include <Thirdparty/g2o/g2o/types/types_six_dof_expmap.h>
-#include <Thirdparty/g2o/g2o/types/sim3.h>
+#include "Thirdparty/g2o/g2o/types/sim3.h"
+#include "Thirdparty/g2o/g2o/types/types_six_dof_expmap.h"
 
-#include <Eigen/Geometry>
-#include <CameraModels/GeometricCamera.h>
+#include <Eigen/Dense>
 
+namespace ORB_SLAM3
+{
 
-namespace ORB_SLAM3 {
-class  EdgeSE3ProjectXYZOnlyPose: public  g2o::BaseUnaryEdge<2, Eigen::Vector2d, g2o::VertexSE3Expmap>{
+class GeometricCamera;
+
+class EdgeSE3ProjectXYZOnlyPose: public g2o::BaseUnaryEdge<2, Eigen::Vector2d, g2o::VertexSE3Expmap>{
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -38,11 +40,7 @@ public:
 
     bool write(std::ostream& os) const;
 
-    void computeError()  {
-        const g2o::VertexSE3Expmap* v1 = static_cast<const g2o::VertexSE3Expmap*>(_vertices[0]);
-        Eigen::Vector2d obs(_measurement);
-        _error = obs-pCamera->project(v1->estimate().map(Xw));
-    }
+    void computeError();
 
     bool isDepthPositive() {
         const g2o::VertexSE3Expmap* v1 = static_cast<const g2o::VertexSE3Expmap*>(_vertices[0]);
@@ -66,11 +64,7 @@ public:
 
     bool write(std::ostream& os) const;
 
-    void computeError()  {
-        const g2o::VertexSE3Expmap* v1 = static_cast<const g2o::VertexSE3Expmap*>(_vertices[0]);
-        Eigen::Vector2d obs(_measurement);
-        _error = obs-pCamera->project((mTrl * v1->estimate()).map(Xw));
-    }
+    void computeError();
 
     bool isDepthPositive() {
         const g2o::VertexSE3Expmap* v1 = static_cast<const g2o::VertexSE3Expmap*>(_vertices[0]);
@@ -96,12 +90,7 @@ public:
 
     bool write(std::ostream& os) const;
 
-    void computeError()  {
-        const g2o::VertexSE3Expmap* v1 = static_cast<const g2o::VertexSE3Expmap*>(_vertices[1]);
-        const g2o::VertexSBAPointXYZ* v2 = static_cast<const g2o::VertexSBAPointXYZ*>(_vertices[0]);
-        Eigen::Vector2d obs(_measurement);
-        _error = obs-pCamera->project(v1->estimate().map(v2->estimate()));
-    }
+    void computeError();
 
     bool isDepthPositive() {
         const g2o::VertexSE3Expmap* v1 = static_cast<const g2o::VertexSE3Expmap*>(_vertices[1]);
@@ -124,12 +113,7 @@ public:
 
     bool write(std::ostream& os) const;
 
-    void computeError()  {
-        const g2o::VertexSE3Expmap* v1 = static_cast<const g2o::VertexSE3Expmap*>(_vertices[1]);
-        const g2o::VertexSBAPointXYZ* v2 = static_cast<const g2o::VertexSBAPointXYZ*>(_vertices[0]);
-        Eigen::Vector2d obs(_measurement);
-        _error = obs-pCamera->project((mTrl * v1->estimate()).map(v2->estimate()));
-    }
+    void computeError();
 
     bool isDepthPositive() {
         const g2o::VertexSE3Expmap* v1 = static_cast<const g2o::VertexSE3Expmap*>(_vertices[1]);
@@ -180,14 +164,7 @@ public:
     virtual bool read(std::istream& is);
     virtual bool write(std::ostream& os) const;
 
-    void computeError()
-    {
-        const ORB_SLAM3::VertexSim3Expmap* v1 = static_cast<const ORB_SLAM3::VertexSim3Expmap*>(_vertices[1]);
-        const g2o::VertexSBAPointXYZ* v2 = static_cast<const g2o::VertexSBAPointXYZ*>(_vertices[0]);
-
-        Eigen::Vector2d obs(_measurement);
-        _error = obs-v1->pCamera1->project(v1->estimate().map(v2->estimate()));
-    }
+    void computeError();
 
     // virtual void linearizeOplus();
 
@@ -201,19 +178,12 @@ public:
     virtual bool read(std::istream& is);
     virtual bool write(std::ostream& os) const;
 
-    void computeError()
-    {
-        const ORB_SLAM3::VertexSim3Expmap* v1 = static_cast<const ORB_SLAM3::VertexSim3Expmap*>(_vertices[1]);
-        const g2o::VertexSBAPointXYZ* v2 = static_cast<const g2o::VertexSBAPointXYZ*>(_vertices[0]);
-
-        Eigen::Vector2d obs(_measurement);
-        _error = obs-v1->pCamera2->project((v1->estimate().inverse().map(v2->estimate())));
-    }
+    void computeError();
 
     // virtual void linearizeOplus();
 
 };
 
-}
+} // namespace ORB_SLAM3
 
-#endif //ORB_SLAM3_OPTIMIZABLETYPES_H
+#endif // ORB_SLAM3_OPTIMIZABLETYPES_H

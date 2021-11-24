@@ -16,19 +16,18 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ORB_SLAM3_SIM3SOLVER_H
+#define ORB_SLAM3_SIM3SOLVER_H
 
-#ifndef SIM3SOLVER_H
-#define SIM3SOLVER_H
-
-#include <opencv2/opencv.hpp>
+#include <opencv2/core/mat.hpp>
 #include <vector>
-
-#include "KeyFrame.h"
-
-
 
 namespace ORB_SLAM3
 {
+
+class GeometricCamera;
+class KeyFrame;
+class MapPoint;
 
 class Sim3Solver
 {
@@ -129,6 +128,6 @@ protected:
     GeometricCamera* pCamera1, *pCamera2;
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3
 
-#endif // SIM3SOLVER_H
+#endif // ORB_SLAM3_SIM3SOLVER_H

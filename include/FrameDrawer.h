@@ -16,26 +16,23 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ORB_SLAM3_FRAMEDRAWER_H
+#define ORB_SLAM3_FRAMEDRAWER_H
 
-#ifndef FRAMEDRAWER_H
-#define FRAMEDRAWER_H
+#include "Frame.h"
 
-#include "Tracking.h"
-#include "MapPoint.h"
-#include "Atlas.h"
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
+#include <opencv2/features2d/features2d.hpp>
 
-#include<opencv2/core/core.hpp>
-#include<opencv2/features2d/features2d.hpp>
-
-#include<mutex>
+#include <mutex>
 #include <unordered_set>
-
 
 namespace ORB_SLAM3
 {
 
+class Atlas;
 class Tracking;
-class Viewer;
 
 class FrameDrawer
 {
@@ -83,6 +80,6 @@ protected:
 
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3
 
-#endif // FRAMEDRAWER_H
+#endif // ORB_SLAM3_FRAMEDRAWER_H

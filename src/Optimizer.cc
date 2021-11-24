@@ -16,31 +16,24 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "Optimizer.h"
 
-
-#include <complex>
-
-#include <Eigen/StdVector>
-#include <Eigen/Sparse>
-#include <Eigen/Dense>
-#include <unsupported/Eigen/MatrixFunctions>
-
-#include "Thirdparty/g2o/g2o/core/sparse_block_matrix.h"
-#include "Thirdparty/g2o/g2o/core/block_solver.h"
-#include "Thirdparty/g2o/g2o/core/optimization_algorithm_levenberg.h"
-#include "Thirdparty/g2o/g2o/core/optimization_algorithm_gauss_newton.h"
-#include "Thirdparty/g2o/g2o/solvers/linear_solver_eigen.h"
-#include "Thirdparty/g2o/g2o/types/types_six_dof_expmap.h"
-#include "Thirdparty/g2o/g2o/core/robust_kernel_impl.h"
-#include "Thirdparty/g2o/g2o/solvers/linear_solver_dense.h"
-#include "G2oTypes.h"
+#include "CameraModels/GeometricCamera.h"
 #include "Converter.h"
-
-#include<mutex>
-
+#include "Frame.h"
+#include "G2oTypes.h"
+#include "KeyFrame.h"
+#include "Map.h"
+#include "MapPoint.h"
 #include "OptimizableTypes.h"
+#include "System.h"
+#include "Thirdparty/g2o/g2o/core/block_solver.h"
+#include "Thirdparty/g2o/g2o/core/optimization_algorithm_gauss_newton.h"
+#include "Thirdparty/g2o/g2o/core/optimization_algorithm_levenberg.h"
+#include "Thirdparty/g2o/g2o/core/robust_kernel_impl.h"
+#include "Thirdparty/g2o/g2o/core/sparse_optimizer.h"
+#include "Thirdparty/g2o/g2o/solvers/linear_solver_dense.h"
+#include "Thirdparty/g2o/g2o/solvers/linear_solver_eigen.h"
 
 using namespace std;
 
@@ -156,7 +149,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
             KeyFrame* pKF = mit->first;
             if(pKF->isBad() || pKF->mnId>maxKFid)
                 continue;
-            if(optimizer.vertex(id) == NULL || optimizer.vertex(pKF->mnId) == NULL)
+            if(optimizer.vertex(id) == nullptr || optimizer.vertex(pKF->mnId) == nullptr)
                 continue;
             nEdges++;
 
@@ -3396,11 +3389,11 @@ int Optimizer::OptimizeSim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint *> &
         if(e12->chi2()>th2 || e21->chi2()>th2)
         {
             size_t idx = vnIndexEdge[i];
-            vpMatches1[idx]=static_cast<MapPoint*>(NULL);
+            vpMatches1[idx] = nullptr;
             optimizer.removeEdge(e12);
             optimizer.removeEdge(e21);
-            vpEdges12[i]=static_cast<g2o::EdgeSim3ProjectXYZ*>(NULL);
-            vpEdges21[i]=static_cast<g2o::EdgeInverseSim3ProjectXYZ*>(NULL);
+            vpEdges12[i] = nullptr;
+            vpEdges21[i] = nullptr;
             nBad++;
         }
     }
@@ -3430,7 +3423,7 @@ int Optimizer::OptimizeSim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint *> &
         if(e12->chi2()>th2 || e21->chi2()>th2)
         {
             size_t idx = vnIndexEdge[i];
-            vpMatches1[idx]=static_cast<MapPoint*>(NULL);
+            vpMatches1[idx] = nullptr;
         }
         else
             nIn++;
@@ -3652,11 +3645,11 @@ int Optimizer::OptimizeSim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint *> &
         if(e12->chi2()>th2 || e21->chi2()>th2)
         {
             size_t idx = vnIndexEdge[i];
-            vpMatches1[idx]=static_cast<MapPoint*>(NULL);
+            vpMatches1[idx] = nullptr;
             optimizer.removeEdge(e12);
             optimizer.removeEdge(e21);
-            vpEdges12[i]=static_cast<ORB_SLAM3::EdgeSim3ProjectXYZ*>(NULL);
-            vpEdges21[i]=static_cast<ORB_SLAM3::EdgeInverseSim3ProjectXYZ*>(NULL);
+            vpEdges12[i] = nullptr;
+            vpEdges21[i] = nullptr;
             nBad++;
 
             if(!vbIsInKF2[i])
@@ -3700,7 +3693,7 @@ int Optimizer::OptimizeSim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint *> &
         if(e12->chi2()>th2 || e21->chi2()>th2)
         {
             size_t idx = vnIndexEdge[i];
-            vpMatches1[idx]=static_cast<MapPoint*>(NULL);
+            vpMatches1[idx] = nullptr;
         }
         else
         {
@@ -3895,11 +3888,11 @@ int Optimizer::OptimizeSim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint *> &
         if(e12->chi2()>th2 || e21->chi2()>th2)
         {
             size_t idx = vnIndexEdge[i];
-            vpMatches1[idx]=static_cast<MapPoint*>(NULL);
+            vpMatches1[idx] = nullptr;
             optimizer.removeEdge(e12);
             optimizer.removeEdge(e21);
-            vpEdges12[i]=static_cast<ORB_SLAM3::EdgeSim3ProjectXYZ*>(NULL);
-            vpEdges21[i]=static_cast<ORB_SLAM3::EdgeInverseSim3ProjectXYZ*>(NULL);
+            vpEdges12[i] = nullptr;
+            vpEdges21[i] = nullptr;
             nBad++;
             continue;
         }
@@ -3938,7 +3931,7 @@ int Optimizer::OptimizeSim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint *> &
         if(e12->chi2()>th2 || e21->chi2()>th2)
         {
             size_t idx = vnIndexEdge[i];
-            vpMatches1[idx]=static_cast<MapPoint*>(NULL);
+            vpMatches1[idx] = nullptr;
         }
         else
         {
@@ -4171,9 +4164,9 @@ void Optimizer::LocalInertialBA(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int&
     }
 
     // Create intertial constraints
-    vector<EdgeInertial*> vei(N,(EdgeInertial*)NULL);
-    vector<EdgeGyroRW*> vegr(N,(EdgeGyroRW*)NULL);
-    vector<EdgeAccRW*> vear(N,(EdgeAccRW*)NULL);
+    vector<EdgeInertial*> vei(N, nullptr);
+    vector<EdgeGyroRW*> vegr(N, nullptr);
+    vector<EdgeAccRW*> vear(N, nullptr);
 
     for(int i=0;i<N;i++)
     {
@@ -6370,9 +6363,9 @@ void Optimizer::MergeInertialBA(KeyFrame* pCurrKF, KeyFrame* pMergeKF, bool *pbS
     }
 
     // Create intertial constraints
-    vector<EdgeInertial*> vei(N,(EdgeInertial*)NULL);
-    vector<EdgeGyroRW*> vegr(N,(EdgeGyroRW*)NULL);
-    vector<EdgeAccRW*> vear(N,(EdgeAccRW*)NULL);
+    vector<EdgeInertial*> vei(N, nullptr);
+    vector<EdgeGyroRW*> vegr(N, nullptr);
+    vector<EdgeAccRW*> vear(N, nullptr);
     for(int i=0;i<N;i++)
     {
         //cout << "inserting inertial edge " << i << endl;
@@ -6509,7 +6502,7 @@ void Optimizer::MergeInertialBA(KeyFrame* pCurrKF, KeyFrame* pMergeKF, bool *pbS
             }
 
 
-            if(optimizer.vertex(id)==NULL || optimizer.vertex(pKFi->mnId)==NULL)
+            if(optimizer.vertex(id) == nullptr || optimizer.vertex(pKFi->mnId) == nullptr)
                 continue;
 
             if(!pKFi->isBad())
@@ -7509,7 +7502,7 @@ int Optimizer::PoseInertialOptimizationLastFrame(Frame *pFrame, bool bRecInit)
 
     pFrame->mpcpi = new ConstraintPoseImu(VP->estimate().Rwb,VP->estimate().twb,VV->estimate(),VG->estimate(),VA->estimate(),H.block<15,15>(15,15));
     delete pFp->mpcpi;
-    pFp->mpcpi = NULL;
+    pFp->mpcpi = nullptr;
 
     return nInitialCorrespondences-nBad;
 }
@@ -7649,7 +7642,7 @@ void Optimizer::OptimizeEssentialGraph4DoF(Map* pMap, KeyFrame* pLoopKF, KeyFram
 
 
         // 1.1.0 Spanning tree edge
-        KeyFrame* pParentKF = static_cast<KeyFrame*>(NULL);
+        KeyFrame* pParentKF = nullptr;
         if(pParentKF)
         {
             int nIDj = pParentKF->mnId;
@@ -7822,4 +7815,4 @@ void Optimizer::OptimizeEssentialGraph4DoF(Map* pMap, KeyFrame* pLoopKF, KeyFram
     pMap->IncreaseChangeIndex();
 }
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3

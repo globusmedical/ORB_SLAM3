@@ -16,14 +16,12 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "KeyFrameDatabase.h"
 
+#include "Frame.h"
 #include "KeyFrame.h"
-#include "Thirdparty/DBoW2/DBoW2/BowVector.h"
+#include "Map.h"
 #include "Thirdparty/DBoW2/DBoW2/TemplatedVocabulary.h"
-
-#include<mutex>
 
 using namespace std;
 
@@ -855,4 +853,4 @@ void KeyFrameDatabase::SetORBVocabulary(ORBVocabulary* pORBVoc)
     mvInvertedFile.resize(mpVoc->size());
 }
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3

@@ -17,8 +17,12 @@
 */
 
 #include "G2oTypes.h"
-#include "ImuTypes.h"
+
+#include "CameraModels/GeometricCamera.h"
 #include "Converter.h"
+#include "Frame.h"
+#include "KeyFrame.h"
+
 namespace ORB_SLAM3
 {
 
@@ -346,6 +350,41 @@ bool VertexPose::write(std::ostream& os) const
 }
 
 
+VertexVelocity::VertexVelocity(KeyFrame* pKF)
+{
+    setEstimate(Converter::toVector3d(pKF->GetVelocity()));
+}
+
+VertexVelocity::VertexVelocity(Frame* pF)
+{
+    setEstimate(Converter::toVector3d(pF->mVw));
+}
+
+VertexGyroBias::VertexGyroBias(KeyFrame *pKF)
+{
+    setEstimate(Converter::toVector3d(pKF->GetGyroBias()));
+}
+
+VertexGyroBias::VertexGyroBias(Frame *pF)
+{
+    Eigen::Vector3d bg;
+    bg << pF->mImuBias.bwx, pF->mImuBias.bwy,pF->mImuBias.bwz;
+    setEstimate(bg);
+}
+
+VertexAccBias::VertexAccBias(KeyFrame *pKF)
+{
+    setEstimate(Converter::toVector3d(pKF->GetAccBias()));
+}
+
+VertexAccBias::VertexAccBias(Frame *pF)
+{
+    Eigen::Vector3d ba;
+    ba << pF->mImuBias.bax, pF->mImuBias.bay,pF->mImuBias.baz;
+    setEstimate(ba);
+}
+
+
 void EdgeMono::linearizeOplus()
 {
     const VertexPose* VPose = static_cast<const VertexPose*>(_vertices[1]);
@@ -371,6 +410,10 @@ void EdgeMono::linearizeOplus()
 
     _jacobianOplusXj = proj_jac * Rcb * SE3deriv; // TODO optimize this product
 }
+
+EdgeMonoOnlyPose::EdgeMonoOnlyPose(const cv::Mat &Xw, int cam_idx):
+    Xw(Converter::toVector3d(Xw)), cam_idx(cam_idx)
+{}
 
 void EdgeMonoOnlyPose::linearizeOplus()
 {
@@ -426,6 +469,10 @@ void EdgeStereo::linearizeOplus()
     _jacobianOplusXj = proj_jac * Rcb * SE3deriv;
 }
 
+EdgeStereoOnlyPose::EdgeStereoOnlyPose(const cv::Mat &Xw, int cam_idx):
+    Xw(Converter::toVector3d(Xw)), cam_idx(cam_idx)
+{}
+
 void EdgeStereoOnlyPose::linearizeOplus()
 {
     const VertexPose* VPose = static_cast<const VertexPose*>(_vertices[0]);
@@ -453,41 +500,6 @@ void EdgeStereoOnlyPose::linearizeOplus()
     _jacobianOplusXi = proj_jac * Rcb * SE3deriv;
 }
 
-VertexVelocity::VertexVelocity(KeyFrame* pKF)
-{
-    setEstimate(Converter::toVector3d(pKF->GetVelocity()));
-}
-
-VertexVelocity::VertexVelocity(Frame* pF)
-{
-    setEstimate(Converter::toVector3d(pF->mVw));
-}
-
-VertexGyroBias::VertexGyroBias(KeyFrame *pKF)
-{
-    setEstimate(Converter::toVector3d(pKF->GetGyroBias()));
-}
-
-VertexGyroBias::VertexGyroBias(Frame *pF)
-{
-    Eigen::Vector3d bg;
-    bg << pF->mImuBias.bwx, pF->mImuBias.bwy,pF->mImuBias.bwz;
-    setEstimate(bg);
-}
-
-VertexAccBias::VertexAccBias(KeyFrame *pKF)
-{
-    setEstimate(Converter::toVector3d(pKF->GetAccBias()));
-}
-
-VertexAccBias::VertexAccBias(Frame *pF)
-{
-    Eigen::Vector3d ba;
-    ba << pF->mImuBias.bax, pF->mImuBias.bay,pF->mImuBias.baz;
-    setEstimate(ba);
-}
-
-
 
 EdgeInertial::EdgeInertial(IMU::Preintegrated *pInt):JRg(Converter::toMatrix3d(pInt->JRg)),
     JVg(Converter::toMatrix3d(pInt->JVg)), JPg(Converter::toMatrix3d(pInt->JPg)), JVa(Converter::toMatrix3d(pInt->JVa)),
@@ -510,9 +522,6 @@ EdgeInertial::EdgeInertial(IMU::Preintegrated *pInt):JRg(Converter::toMatrix3d(p
     Info = es.eigenvectors()*eigs.asDiagonal()*es.eigenvectors().transpose();
     setInformation(Info);
 }
-
-
-
 
 void EdgeInertial::computeError()
 {
@@ -618,8 +627,6 @@ EdgeInertialGS::EdgeInertialGS(IMU::Preintegrated *pInt):JRg(Converter::toMatrix
     setInformation(Info);
 }
 
-
-
 void EdgeInertialGS::computeError()
 {
     // TODO Maybe Reintegrate inertial measurments when difference between linearization point and current estimate is too big
@@ -723,6 +730,41 @@ void EdgeInertialGS::linearizeOplus()
     _jacobianOplus[7].block<3,1>(6,0) = Rbw1*(VP2->estimate().twb-VP1->estimate().twb-VV1->estimate()*dt);
 }
 
+
+ConstraintPoseImu::ConstraintPoseImu(const Eigen::Matrix3d &Rwb, const Eigen::Vector3d &twb, const Eigen::Vector3d &vwb,
+                                     const Eigen::Vector3d &bg, const Eigen::Vector3d &ba, const Matrix15d &H_):
+    Rwb(Rwb), twb(twb), vwb(vwb), bg(bg), ba(ba), H(H_)
+{
+    H = (H+H)/2;
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double,15,15> > es(H);
+    Eigen::Matrix<double,15,1> eigs = es.eigenvalues();
+    for(int i=0;i<15;i++)
+        if(eigs[i]<1e-12)
+            eigs[i]=0;
+    H = es.eigenvectors()*eigs.asDiagonal()*es.eigenvectors().transpose();
+}
+
+ConstraintPoseImu::ConstraintPoseImu(const cv::Mat &Rwb, const cv::Mat &twb, const cv::Mat &vwb,
+                                     const IMU::Bias &b, const cv::Mat &H_):
+    Rwb(Converter::toMatrix3d(Rwb)),
+    twb(Converter::toVector3d(twb)),
+    vwb(Converter::toVector3d(twb))
+{
+    bg << b.bwx, b.bwy, b.bwz;
+    ba << b.bax, b.bay, b.baz;
+    for(int i=0;i<15;i++)
+        for(int j=0;j<15;j++)
+            H(i,j)=H_.at<float>(i,j);
+    H = (H+H)/2;
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double,15,15> > es(H);
+    Eigen::Matrix<double,15,1> eigs = es.eigenvalues();
+    for(int i=0;i<15;i++)
+        if(eigs[i]<1e-12)
+            eigs[i]=0;
+    H = es.eigenvectors()*eigs.asDiagonal()*es.eigenvectors().transpose();
+}
+
+
 EdgePriorPoseImu::EdgePriorPoseImu(ConstraintPoseImu *c)
 {
     resize(4);
@@ -765,18 +807,26 @@ void EdgePriorPoseImu::linearizeOplus()
     _jacobianOplus[3].block<3,3>(12,0) = Eigen::Matrix3d::Identity();
 }
 
+
+EdgePriorAcc::EdgePriorAcc(const cv::Mat &bprior):
+    bprior(Converter::toVector3d(bprior))
+{}
+
 void EdgePriorAcc::linearizeOplus()
 {
     // Jacobian wrt bias
     _jacobianOplusXi.block<3,3>(0,0) = Eigen::Matrix3d::Identity();
-
 }
+
+
+EdgePriorGyro::EdgePriorGyro(const cv::Mat &bprior):
+    bprior(Converter::toVector3d(bprior))
+{}
 
 void EdgePriorGyro::linearizeOplus()
 {
     // Jacobian wrt bias
     _jacobianOplusXi.block<3,3>(0,0) = Eigen::Matrix3d::Identity();
-
 }
 
 // SO3 FUNCTIONS

@@ -16,12 +16,13 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TwoViewReconstruction_H
-#define TwoViewReconstruction_H
+#ifndef ORB_SLAM3_TWOVIEWRECONSTRUCTION_H
+#define ORB_SLAM3_TWOVIEWRECONSTRUCTION_H
 
-#include<opencv2/opencv.hpp>
-
-#include <unordered_set>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
+#include <utility>
+#include <vector>
 
 namespace ORB_SLAM3
 {
@@ -94,6 +95,6 @@ private:
 
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3
 
-#endif // TwoViewReconstruction_H
+#endif // ORB_SLAM3_TWOVIEWRECONSTRUCTION_H

@@ -17,12 +17,13 @@
 */
 
 #include "FrameDrawer.h"
+
+#include "Atlas.h"
+#include "MapPoint.h"
 #include "Tracking.h"
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-
-#include<mutex>
+#include <mutex>
+#include <opencv2/imgproc.hpp>
 
 using namespace std;
 
@@ -403,4 +404,4 @@ void FrameDrawer::Update(Tracking *pTracker)
     mState=static_cast<int>(pTracker->mLastProcessedState);
 }
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3

@@ -16,16 +16,19 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "LocalMapping.h"
-#include "LoopClosing.h"
-#include "ORBmatcher.h"
-#include "Optimizer.h"
-#include "Converter.h"
-#include "Config.h"
 
-#include<mutex>
-#include<chrono>
+#include "Atlas.h"
+#include "CameraModels/GeometricCamera.h"
+#include "Converter.h"
+#include "KeyFrame.h"
+#include "Map.h"
+#include "MapPoint.h"
+#include "Optimizer.h"
+#include "ORBmatcher.h"
+#include "Tracking.h"
+
+#include <chrono>
 
 using namespace std;
 
@@ -1113,8 +1116,8 @@ void LocalMapping::KeyFrameCulling()
                         pKF->mNextKF->mpImuPreintegrated->MergePrevious(pKF->mpImuPreintegrated);
                         pKF->mNextKF->mPrevKF = pKF->mPrevKF;
                         pKF->mPrevKF->mNextKF = pKF->mNextKF;
-                        pKF->mNextKF = NULL;
-                        pKF->mPrevKF = NULL;
+                        pKF->mNextKF = nullptr;
+                        pKF->mPrevKF = nullptr;
                         pKF->SetBadFlag();
                     }
                     else if(!mpCurrentKeyFrame->GetMap()->GetIniertialBA2() && (cv::norm(pKF->GetImuPosition()-pKF->mPrevKF->GetImuPosition())<0.02) && (t<3))
@@ -1122,8 +1125,8 @@ void LocalMapping::KeyFrameCulling()
                         pKF->mNextKF->mpImuPreintegrated->MergePrevious(pKF->mpImuPreintegrated);
                         pKF->mNextKF->mPrevKF = pKF->mPrevKF;
                         pKF->mPrevKF->mNextKF = pKF->mNextKF;
-                        pKF->mNextKF = NULL;
-                        pKF->mPrevKF = NULL;
+                        pKF->mNextKF = nullptr;
+                        pKF->mPrevKF = nullptr;
                         pKF->SetBadFlag();
                     }
                 }
@@ -1401,9 +1404,9 @@ void LocalMapping::InitializeIMU(float priorG, float priorA, bool bFIBA)
     if (bFIBA)
     {
         if (priorA!=0.f)
-            Optimizer::FullInertialBA(mpAtlas->GetCurrentMap(), 100, false, 0, NULL, true, priorG, priorA);
+            Optimizer::FullInertialBA(mpAtlas->GetCurrentMap(), 100, false, 0, nullptr, true, priorG, priorA);
         else
-            Optimizer::FullInertialBA(mpAtlas->GetCurrentMap(), 100, false, 0, NULL, false);
+            Optimizer::FullInertialBA(mpAtlas->GetCurrentMap(), 100, false, 0, nullptr, false);
     }
 
     std::chrono::steady_clock::time_point t5 = std::chrono::steady_clock::now();
@@ -1529,4 +1532,4 @@ KeyFrame* LocalMapping::GetCurrKF()
     return mpCurrentKeyFrame;
 }
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3

@@ -16,34 +16,52 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #include "System.h"
+
+#include "Atlas.h"
 #include "Converter.h"
+#include "FrameDrawer.h"
+#include "KeyFrame.h"
+#include "KeyFrameDatabase.h"
+#include "LocalMapping.h"
+#include "LoopClosing.h"
+#include "Map.h"
+#include "MapPoint.h"
+#include "MapDrawer.h"
 #include "Thirdparty/DBoW2/DBoW2/TemplatedVocabulary.h"
-#include <thread>
-#include <pangolin/pangolin.h>
+#include "Tracking.h"
+#include "Viewer.h"
+
 #include <iomanip>
-//#include <openssl/md5.h> // TODO: unused even in UZ_SLAMLAB code
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
+#include <iostream>
+#include <pangolin/pangolin.h>
 
 using namespace std;
 
 namespace ORB_SLAM3
 {
 
-Verbose::eLevel Verbose::th = Verbose::VERBOSITY_NORMAL;
+namespace Verbose
+{
+
+eLevel th = Verbose::VERBOSITY_NORMAL;
+
+void PrintMess(std::string str, eLevel lev)
+{
+  if(lev <= th)
+    std::cout << str << std::endl;
+}
+
+void SetTh(eLevel _th)
+{
+  th = _th;
+}
+
+} // namespace Verbose
 
 System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor,
                const bool bUseViewer, const int initFr, const string &strSequence, const string &strLoadingFile):
-    mSensor(sensor), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false), mbResetActiveMap(false),
+    mSensor(sensor), mpViewer(nullptr), mbReset(false), mbResetActiveMap(false),
     mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false)
 {
     // Output welcome message
@@ -778,7 +796,4 @@ void System::InsertTrackTime(double& time)
 }
 #endif
 
-
-} //namespace ORB_SLAM
-
-
+} // namespace ORB_SLAM3

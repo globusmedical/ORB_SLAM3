@@ -16,34 +16,33 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ORB_SLAM3_G2OTYPES_H
+#define ORB_SLAM3_G2OTYPES_H
 
-#ifndef G2OTYPES_H
-#define G2OTYPES_H
-
-#include "Thirdparty/g2o/g2o/core/base_vertex.h"
 #include "Thirdparty/g2o/g2o/core/base_binary_edge.h"
-#include "Thirdparty/g2o/g2o/types/types_sba.h"
 #include "Thirdparty/g2o/g2o/core/base_multi_edge.h"
 #include "Thirdparty/g2o/g2o/core/base_unary_edge.h"
+#include "Thirdparty/g2o/g2o/core/base_vertex.h"
+#include "Thirdparty/g2o/g2o/types/types_sba.h"
 
-#include<opencv2/core/core.hpp>
-
-#include <Eigen/Core>
-#include <Eigen/Geometry>
 #include <Eigen/Dense>
-
-#include <Frame.h>
-#include <KeyFrame.h>
-
-#include"Converter.h"
-#include <math.h>
+#include <Eigen/Eigenvalues>
+#include <opencv2/core/mat.hpp>
 
 namespace ORB_SLAM3
 {
 
-class KeyFrame;
 class Frame;
 class GeometricCamera;
+class KeyFrame;
+
+namespace IMU
+{
+
+class Bias;
+class Preintegrated;
+
+} // namespace IMU
 
 typedef Eigen::Matrix<double, 6, 1> Vector6d;
 typedef Eigen::Matrix<double, 9, 1> Vector9d;
@@ -389,8 +388,7 @@ class EdgeMonoOnlyPose : public g2o::BaseUnaryEdge<2,Eigen::Vector2d,VertexPose>
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    EdgeMonoOnlyPose(const cv::Mat &Xw_, int cam_idx_=0):Xw(Converter::toVector3d(Xw_)),
-        cam_idx(cam_idx_){}
+    EdgeMonoOnlyPose(const cv::Mat &Xw, int cam_idx = 0);
 
     virtual bool read(std::istream& is){return false;}
     virtual bool write(std::ostream& os) const{return false;}
@@ -465,8 +463,7 @@ class EdgeStereoOnlyPose : public g2o::BaseUnaryEdge<3,Eigen::Vector3d,VertexPos
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    EdgeStereoOnlyPose(const cv::Mat &Xw_, int cam_idx_=0):
-        Xw(Converter::toVector3d(Xw_)), cam_idx(cam_idx_){}
+    EdgeStereoOnlyPose(const cv::Mat &Xw, int cam_idx = 0);
 
     virtual bool read(std::istream& is){return false;}
     virtual bool write(std::ostream& os) const{return false;}
@@ -705,37 +702,10 @@ class ConstraintPoseImu
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    ConstraintPoseImu(const Eigen::Matrix3d &Rwb_, const Eigen::Vector3d &twb_, const Eigen::Vector3d &vwb_,
-                       const Eigen::Vector3d &bg_, const Eigen::Vector3d &ba_, const Matrix15d &H_):
-                       Rwb(Rwb_), twb(twb_), vwb(vwb_), bg(bg_), ba(ba_), H(H_)
-    {
-        H = (H+H)/2;
-        Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double,15,15> > es(H);
-        Eigen::Matrix<double,15,1> eigs = es.eigenvalues();
-        for(int i=0;i<15;i++)
-            if(eigs[i]<1e-12)
-                eigs[i]=0;
-        H = es.eigenvectors()*eigs.asDiagonal()*es.eigenvectors().transpose();
-    }
-    ConstraintPoseImu(const cv::Mat &Rwb_, const cv::Mat &twb_, const cv::Mat &vwb_,
-                       const IMU::Bias &b, const cv::Mat &H_)
-    {
-        Rwb = Converter::toMatrix3d(Rwb_);
-        twb = Converter::toVector3d(twb_);
-        vwb = Converter::toVector3d(vwb_);
-        bg << b.bwx, b.bwy, b.bwz;
-        ba << b.bax, b.bay, b.baz;
-        for(int i=0;i<15;i++)
-            for(int j=0;j<15;j++)
-                H(i,j)=H_.at<float>(i,j);
-        H = (H+H)/2;
-        Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double,15,15> > es(H);
-        Eigen::Matrix<double,15,1> eigs = es.eigenvalues();
-        for(int i=0;i<15;i++)
-            if(eigs[i]<1e-12)
-                eigs[i]=0;
-        H = es.eigenvectors()*eigs.asDiagonal()*es.eigenvectors().transpose();
-    }
+    ConstraintPoseImu(const Eigen::Matrix3d &Rwb, const Eigen::Vector3d &twb, const Eigen::Vector3d &vwb,
+                      const Eigen::Vector3d &bg, const Eigen::Vector3d &ba, const Matrix15d &H_);
+    ConstraintPoseImu(const cv::Mat &Rwb, const cv::Mat &twb, const cv::Mat &vwb,
+                      const IMU::Bias &b, const cv::Mat &H_);
 
     Eigen::Matrix3d Rwb;
     Eigen::Vector3d twb;
@@ -786,7 +756,7 @@ class EdgePriorAcc : public g2o::BaseUnaryEdge<3,Eigen::Vector3d,VertexAccBias>
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    EdgePriorAcc(const cv::Mat &bprior_):bprior(Converter::toVector3d(bprior_)){}
+    EdgePriorAcc(const cv::Mat &bprior);
 
     virtual bool read(std::istream& is){return false;}
     virtual bool write(std::ostream& os) const{return false;}
@@ -810,7 +780,7 @@ class EdgePriorGyro : public g2o::BaseUnaryEdge<3,Eigen::Vector3d,VertexGyroBias
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    EdgePriorGyro(const cv::Mat &bprior_):bprior(Converter::toVector3d(bprior_)){}
+    EdgePriorGyro(const cv::Mat &bprior);
 
     virtual bool read(std::istream& is){return false;}
     virtual bool write(std::ostream& os) const{return false;}
@@ -858,6 +828,6 @@ public:
     Eigen::Vector3d dtij;
 };
 
-} //namespace ORB_SLAM2
+} // namespace ORB_SLAM3
 
-#endif // G2OTYPES_H
+#endif // ORB_SLAM3_G2OTYPES_H

@@ -20,10 +20,11 @@
 
 #include "Thirdparty/DBoW2/DUtils/Random.h"
 
-#include<thread>
-
+#include <opencv2/core.hpp>
+#include <thread>
 
 using namespace std;
+
 namespace ORB_SLAM3
 {
 
@@ -50,7 +51,7 @@ bool TwoViewReconstruction::Reconstruct(const std::vector<cv::KeyPoint>& vKeys1,
     mvMatches12.clear();
     mvMatches12.reserve(mvKeys2.size());
     mvbMatched1.resize(mvKeys1.size());
-    for(size_t i=0, iend=vMatches12.size();i<iend; i++)
+    for(int i=0, iend=vMatches12.size();i<iend; i++)
     {
         if(vMatches12[i]>=0)
         {
@@ -932,4 +933,4 @@ void TwoViewReconstruction::DecomposeE(const cv::Mat &E, cv::Mat &R1, cv::Mat &R
         R2=-R2;
 }
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3

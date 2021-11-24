@@ -214,4 +214,4 @@ std::vector<float> Converter::toEuler(const cv::Mat &R)
     return v_euler;
 }
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3

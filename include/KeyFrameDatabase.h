@@ -16,33 +16,21 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ORB_SLAM3_KEYFRAMEDATABASE_H
+#define ORB_SLAM3_KEYFRAMEDATABASE_H
 
-#ifndef KEYFRAMEDATABASE_H
-#define KEYFRAMEDATABASE_H
-
-#include <vector>
-#include <list>
-#include <set>
-
-#include "KeyFrame.h"
-#include "Frame.h"
 #include "ORBVocabulary.h"
-#include "Map.h"
 
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/list.hpp>
-
-#include<mutex>
-
+#include <list>
+#include <mutex>
+#include <vector>
 
 namespace ORB_SLAM3
 {
 
-class KeyFrame;
 class Frame;
+class KeyFrame;
 class Map;
-
 
 class KeyFrameDatabase
 {
@@ -51,38 +39,38 @@ public:
 
     KeyFrameDatabase(const ORBVocabulary &voc);
 
-   void add(KeyFrame* pKF);
+    void add(KeyFrame* pKF);
 
-   void erase(KeyFrame* pKF);
+    void erase(KeyFrame* pKF);
 
-   void clear();
-   void clearMap(Map* pMap);
+    void clear();
+    void clearMap(Map* pMap);
 
-   // Loop Detection(DEPRECATED)
-   std::vector<KeyFrame *> DetectLoopCandidates(KeyFrame* pKF, float minScore);
+    // Loop Detection(DEPRECATED)
+    std::vector<KeyFrame *> DetectLoopCandidates(KeyFrame* pKF, float minScore);
 
-   // Loop and Merge Detection
-   void DetectCandidates(KeyFrame* pKF, float minScore, std::vector<KeyFrame*>& vpLoopCand, std::vector<KeyFrame*>& vpMergeCand);
-   void DetectBestCandidates(KeyFrame *pKF, std::vector<KeyFrame*> &vpLoopCand, std::vector<KeyFrame*> &vpMergeCand, int nMinWords);
-   void DetectNBestCandidates(KeyFrame *pKF, std::vector<KeyFrame*> &vpLoopCand, std::vector<KeyFrame*> &vpMergeCand, int nNumCandidates);
+    // Loop and Merge Detection
+    void DetectCandidates(KeyFrame* pKF, float minScore, std::vector<KeyFrame*>& vpLoopCand, std::vector<KeyFrame*>& vpMergeCand);
+    void DetectBestCandidates(KeyFrame *pKF, std::vector<KeyFrame*> &vpLoopCand, std::vector<KeyFrame*> &vpMergeCand, int nMinWords);
+    void DetectNBestCandidates(KeyFrame *pKF, std::vector<KeyFrame*> &vpLoopCand, std::vector<KeyFrame*> &vpMergeCand, int nNumCandidates);
 
-   // Relocalization
-   std::vector<KeyFrame*> DetectRelocalizationCandidates(Frame* F, Map* pMap);
+    // Relocalization
+    std::vector<KeyFrame*> DetectRelocalizationCandidates(Frame* F, Map* pMap);
 
-   void SetORBVocabulary(ORBVocabulary* pORBVoc);
+    void SetORBVocabulary(ORBVocabulary* pORBVoc);
 
 protected:
 
-  // Associated vocabulary
-  const ORBVocabulary* mpVoc;
+    // Associated vocabulary
+    const ORBVocabulary* mpVoc;
 
-  // Inverted file
-  std::vector<std::list<KeyFrame*> > mvInvertedFile;
+    // Inverted file
+    std::vector<std::list<KeyFrame*> > mvInvertedFile;
 
-  // Mutex
-  std::mutex mMutex;
+    // Mutex
+    std::mutex mMutex;
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3
 
-#endif
+#endif // ORB_SLAM3_KEYFRAMEDATABASE_H

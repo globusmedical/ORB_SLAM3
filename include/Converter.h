@@ -16,15 +16,14 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ORB_SLAM3_CONVERTER_H
+#define ORB_SLAM3_CONVERTER_H
 
-#ifndef CONVERTER_H
-#define CONVERTER_H
+#include "Thirdparty/g2o/g2o/types/types_six_dof_expmap.h"
+#include "Thirdparty/g2o/g2o/types/types_seven_dof_expmap.h"
 
-#include<opencv2/core/core.hpp>
-
-#include<Eigen/Dense>
-#include"Thirdparty/g2o/g2o/types/types_six_dof_expmap.h"
-#include"Thirdparty/g2o/g2o/types/types_seven_dof_expmap.h"
+#include <Eigen/Dense>
+#include <opencv2/core/core.hpp>
 
 namespace ORB_SLAM3
 {
@@ -58,6 +57,6 @@ public:
 
 };
 
-}// namespace ORB_SLAM
+} // namespace ORB_SLAM3
 
-#endif // CONVERTER_H
+#endif // ORB_SLAM3_CONVERTER_H

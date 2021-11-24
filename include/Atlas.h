@@ -16,32 +16,26 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ATLAS_H
-#define ATLAS_H
+#ifndef ORB_SLAM3_ATLAS_H
+#define ORB_SLAM3_ATLAS_H
 
-#include "Map.h"
-#include "MapPoint.h"
-#include "KeyFrame.h"
-#include "CameraModels/GeometricCamera.h"
-#include "CameraModels/Pinhole.h"
-#include "CameraModels/KannalaBrandt8.h"
+#include "ORBVocabulary.h"
 
-#include <set>
 #include <mutex>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/export.hpp>
-
+#include <set>
+#include <vector>
 
 namespace ORB_SLAM3
 {
-class Viewer;
-class Map;
-class MapPoint;
-class KeyFrame;
-class KeyFrameDatabase;
-class Frame;
+
+class GeometricCamera;
 class KannalaBrandt8;
 class Pinhole;
+class KeyFrame;
+class KeyFrameDatabase;
+class Map;
+class MapPoint;
+class Viewer;
 
 class Atlas
 {
@@ -125,10 +119,8 @@ protected:
     // Class references for the map reconstruction from the save file
     KeyFrameDatabase* mpKeyFrameDB;
     ORBVocabulary* mpORBVocabulary;
-
-
 }; // class Atlas
 
 } // namespace ORB_SLAM3
 
-#endif // ATLAS_H
+#endif // ORB_SLAM3_ATLAS_H

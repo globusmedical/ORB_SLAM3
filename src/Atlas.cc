@@ -17,11 +17,14 @@
 */
 
 #include "Atlas.h"
-#include "Viewer.h"
 
 #include "CameraModels/GeometricCamera.h"
-#include "CameraModels/Pinhole.h"
 #include "CameraModels/KannalaBrandt8.h"
+#include "CameraModels/Pinhole.h"
+#include "KeyFrame.h"
+#include "Map.h"
+#include "MapPoint.h"
+#include "Viewer.h"
 
 using namespace std;
 
@@ -29,12 +32,12 @@ namespace ORB_SLAM3
 {
 
 Atlas::Atlas(){
-    mpCurrentMap = static_cast<Map*>(NULL);
+    mpCurrentMap = nullptr;
 }
 
 Atlas::Atlas(int initKFid): mnLastInitKFidMap(initKFid), mHasViewer(false)
 {
-    mpCurrentMap = static_cast<Map*>(NULL);
+    mpCurrentMap = nullptr;
     CreateNewMap();
 }
 
@@ -47,7 +50,7 @@ Atlas::~Atlas()
         if(pMi)
         {
             delete pMi;
-            pMi = static_cast<Map*>(NULL);
+            pMi = nullptr;
 
             it = mspMaps.erase(it);
         }
@@ -204,7 +207,7 @@ void Atlas::clearAtlas()
         delete *it;
     }*/
     mspMaps.clear();
-    mpCurrentMap = static_cast<Map*>(NULL);
+    mpCurrentMap = nullptr;
     mnLastInitKFidMap = 0;
 }
 
@@ -233,7 +236,7 @@ void Atlas::RemoveBadMaps()
     /*for(Map* pMap : mspBadMaps)
     {
         delete pMap;
-        pMap = static_cast<Map*>(NULL);
+        pMap = nullptr;
     }*/
     mspBadMaps.clear();
 }
@@ -304,4 +307,4 @@ long unsigned int Atlas::GetNumLivedMP() {
     return num;
 }
 
-} //namespace ORB_SLAM3
+} // namespace ORB_SLAM3

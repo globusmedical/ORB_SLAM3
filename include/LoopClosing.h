@@ -16,32 +16,31 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ORB_SLAM3_LOOPCLOSING_H
+#define ORB_SLAM3_LOOPCLOSING_H
 
-#ifndef LOOPCLOSING_H
-#define LOOPCLOSING_H
-
-#include "KeyFrame.h"
-#include "LocalMapping.h"
-#include "Atlas.h"
 #include "ORBVocabulary.h"
-#include "Tracking.h"
-#include "Config.h"
+#include "Thirdparty/g2o/g2o/types/sim3.h"
 
-#include "KeyFrameDatabase.h"
-
-#include <boost/algorithm/string.hpp>
-#include <thread>
+#include <Eigen/Core>
+#include <functional>
+#include <map>
 #include <mutex>
-#include "Thirdparty/g2o/g2o/types/types_seven_dof_expmap.h"
+#include <set>
+#include <utility>
+#include <vector>
 
 namespace ORB_SLAM3
 {
 
-class Tracking;
-class LocalMapping;
+class Atlas;
+class KeyFrame;
 class KeyFrameDatabase;
+class LocalMapping;
 class Map;
-
+class MapPoint;
+class Tracking;
+class Viewer;
 
 class LoopClosing
 {
@@ -221,6 +220,6 @@ protected:
     std::vector<int> vnPR_TypeRecogn;
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3
 
-#endif // LOOPCLOSING_H
+#endif // ORB_SLAM3_LOOPCLOSING_H

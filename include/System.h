@@ -16,38 +16,42 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ORB_SLAM3_SYSTEM_H
+#define ORB_SLAM3_SYSTEM_H
 
-#ifndef SYSTEM_H
-#define SYSTEM_H
+#include "Config.h"
+#include "ImuTypes.h"
+#include "ORBVocabulary.h"
 
-//#define SAVE_TIMES
-
-#include <stdio.h>
-#include <stdlib.h>
+#include <mutex>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
 #include <string>
 #include <thread>
-
-#include <opencv2/core/core.hpp>
-
-#include "Tracking.h"
-#include "FrameDrawer.h"
-#include "MapDrawer.h"
-#include "Atlas.h"
-#include "LocalMapping.h"
-#include "LoopClosing.h"
-#include "KeyFrameDatabase.h"
-#include "ORBVocabulary.h"
-#include "Viewer.h"
-#include "ImuTypes.h"
-#include "Config.h"
-
+#include <vector>
 
 namespace ORB_SLAM3
 {
 
-class Verbose
+class Atlas;
+class FrameDrawer;
+class KeyFrameDatabase;
+class LocalMapping;
+class LoopClosing;
+class MapDrawer;
+class MapPoint;
+class Tracking;
+class Viewer;
+
+namespace IMU
 {
-public:
+
+class Point;
+
+} // namespace IMU
+
+namespace Verbose
+{
     enum eLevel
     {
         VERBOSITY_QUIET=0,
@@ -57,27 +61,11 @@ public:
         VERBOSITY_DEBUG=4
     };
 
-    static eLevel th;
+    extern eLevel th;
 
-public:
-    static void PrintMess(std::string str, eLevel lev)
-    {
-        if(lev <= th)
-            std::cout << str << std::endl;
-    }
-
-    static void SetTh(eLevel _th)
-    {
-        th = _th;
-    }
-};
-
-class Viewer;
-class FrameDrawer;
-class Atlas;
-class Tracking;
-class LocalMapping;
-class LoopClosing;
+    void PrintMess(std::string str, eLevel lev);
+    void SetTh(eLevel _th);
+} // namespace Verbose
 
 class System
 {
@@ -236,6 +224,6 @@ private:
     std::mutex mMutexState;
 };
 
-}// namespace ORB_SLAM
+} // namespace ORB_SLAM3
 
-#endif // SYSTEM_H
+#endif // ORB_SLAM3_SYSTEM_H

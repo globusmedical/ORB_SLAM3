@@ -45,30 +45,32 @@
 *   either expressed or implied, of the FreeBSD Project
 */
 
-#ifndef PNPSOLVER_H
-#define PNPSOLVER_H
+#ifndef ORB_SLAM3_PNPSOLVER_H
+#define ORB_SLAM3_PNPSOLVER_H
 
-#include <opencv2/core/core.hpp>
 #include <opencv2/core/core_c.h>
-
-#include "MapPoint.h"
-#include "Frame.h"
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
+#include <vector>
 
 namespace ORB_SLAM3
 {
 
+class Frame;
+class MapPoint;
+
 class PnPsolver {
  public:
-  PnPsolver(const Frame &F, const vector<MapPoint*> &vpMapPointMatches);
+  PnPsolver(const Frame &F, const std::vector<MapPoint*> &vpMapPointMatches);
 
   ~PnPsolver();
 
   void SetRansacParameters(double probability = 0.99, int minInliers = 8 , int maxIterations = 300, int minSet = 4, float epsilon = 0.4,
                            float th2 = 5.991);
 
-  cv::Mat find(vector<bool> &vbInliers, int &nInliers);
+  cv::Mat find(std::vector<bool> &vbInliers, int &nInliers);
 
-  cv::Mat iterate(int nIterations, bool &bNoMore, vector<bool> &vbInliers, int &nInliers);
+  cv::Mat iterate(int nIterations, bool &bNoMore, std::vector<bool> &vbInliers, int &nInliers);
 
  private:
 
@@ -111,15 +113,15 @@ class PnPsolver {
 
   void gauss_newton(const CvMat * L_6x10, const CvMat * Rho, double current_betas[4]);
   void compute_A_and_b_gauss_newton(const double * l_6x10, const double * rho,
-				    double cb[4], CvMat * A, CvMat * b);
+                                    double cb[4], CvMat * A, CvMat * b);
 
   double compute_R_and_t(const double * ut, const double * betas,
-			 double R[3][3], double t[3]);
+                         double R[3][3], double t[3]);
 
   void estimate_R_and_t(double R[3][3], double t[3]);
 
   void copy_R_and_t(const double R_dst[3][3], const double t_dst[3],
-		    double R_src[3][3], double t_src[3]);
+                    double R_src[3][3], double t_src[3]);
 
   void mat_to_quat(const double R[3][3], double q[4]);
 
@@ -133,41 +135,41 @@ class PnPsolver {
   double cws[4][3], ccs[4][3];
   double cws_determinant;
 
-  vector<MapPoint*> mvpMapPointMatches;
+  std::vector<MapPoint*> mvpMapPointMatches;
 
   // 2D Points
-  vector<cv::Point2f> mvP2D;
-  vector<float> mvSigma2;
+  std::vector<cv::Point2f> mvP2D;
+  std::vector<float> mvSigma2;
 
   // 3D Points
-  vector<cv::Point3f> mvP3Dw;
+  std::vector<cv::Point3f> mvP3Dw;
 
   // Index in Frame
-  vector<size_t> mvKeyPointIndices;
+  std::vector<size_t> mvKeyPointIndices;
 
   // Current Estimation
   double mRi[3][3];
   double mti[3];
   cv::Mat mTcwi;
-  vector<bool> mvbInliersi;
+  std::vector<bool> mvbInliersi;
   int mnInliersi;
 
   // Current Ransac State
   int mnIterations;
-  vector<bool> mvbBestInliers;
+  std::vector<bool> mvbBestInliers;
   int mnBestInliers;
   cv::Mat mBestTcw;
 
   // Refined
   cv::Mat mRefinedTcw;
-  vector<bool> mvbRefinedInliers;
+  std::vector<bool> mvbRefinedInliers;
   int mnRefinedInliers;
 
   // Number of Correspondences
   int N;
 
   // Indices for random selection [0 .. N-1]
-  vector<size_t> mvAllIndices;
+  std::vector<size_t> mvAllIndices;
 
   // RANSAC probability
   double mRansacProb;
@@ -188,10 +190,10 @@ class PnPsolver {
   int mRansacMinSet;
 
   // Max square error associated with scale level. Max error = th*th*sigma(level)*sigma(level)
-  vector<float> mvMaxError;
+  std::vector<float> mvMaxError;
 
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3
 
-#endif //PNPSOLVER_H
+#endif // ORB_SLAM3_PNPSOLVER_H

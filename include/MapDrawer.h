@@ -16,19 +16,20 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ORB_SLAM3_MAPDRAWER_H
+#define ORB_SLAM3_MAPDRAWER_H
 
-#ifndef MAPDRAWER_H
-#define MAPDRAWER_H
-
-#include"Atlas.h"
-#include"MapPoint.h"
-#include"KeyFrame.h"
-#include<pangolin/pangolin.h>
-
-#include<mutex>
+#include <mutex>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/persistence.hpp>
+#include <pangolin/gl/opengl_render_state.h>
+#include <string>
 
 namespace ORB_SLAM3
 {
+
+class Atlas;
+class KeyFrame;
 
 class MapDrawer
 {
@@ -68,6 +69,6 @@ private:
                                 {0.0f, 1.0f, 1.0f}};
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3
 
-#endif // MAPDRAWER_H
+#endif // ORB_SLAM3_MAPDRAWER_H

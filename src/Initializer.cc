@@ -18,13 +18,13 @@
 
 #include "Initializer.h"
 
+#include "CameraModels/Pinhole.h"
+#include "Frame.h"
+#include "ORBmatcher.h"
+#include "Optimizer.h"
 #include "Thirdparty/DBoW2/DUtils/Random.h"
 
-#include "Optimizer.h"
-#include "ORBmatcher.h"
-
-#include<thread>
-#include <CameraModels/Pinhole.h>
+#include <thread>
 
 using namespace std;
 
@@ -52,7 +52,7 @@ bool Initializer::Initialize(const Frame &CurrentFrame, const vector<int> &vMatc
     mvMatches12.clear();
     mvMatches12.reserve(mvKeys2.size());
     mvbMatched1.resize(mvKeys1.size());
-    for(size_t i=0, iend=vMatches12.size();i<iend; i++)
+    for(int i=0, iend=vMatches12.size();i<iend; i++)
     {
         if(vMatches12[i]>=0)
         {
@@ -921,4 +921,4 @@ void Initializer::DecomposeE(const cv::Mat &E, cv::Mat &R1, cv::Mat &R2, cv::Mat
         R2=-R2;
 }
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3

@@ -16,19 +16,20 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ORB_SLAM3_INITIALIZER_H
+#define ORB_SLAM3_INITIALIZER_H
 
-#ifndef INITIALIZER_H
-#define INITIALIZER_H
-
-#include<opencv2/opencv.hpp>
-#include "Frame.h"
-
-#include <unordered_set>
+#include <cstddef>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
+#include <utility>
+#include <vector>
 
 namespace ORB_SLAM3
 {
 
-class Map;
+class Frame;
+class GeometricCamera;
 
 // THIS IS THE INITIALIZER FOR MONOCULAR SLAM. NOT USED IN THE STEREO OR RGBD CASE.
 class Initializer
@@ -95,12 +96,12 @@ private:
     int mMaxIterations;
 
     // Ransac sets
-    std::vector<std::vector<size_t> > mvSets;
+    std::vector<std::vector<std::size_t> > mvSets;
 
     GeometricCamera* mpCamera;
 
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3
 
-#endif // INITIALIZER_H
+#endif // ORB_SLAM3_INITIALIZER_H

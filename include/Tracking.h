@@ -17,41 +17,28 @@
 */
 
 
-#ifndef TRACKING_H
-#define TRACKING_H
+#ifndef ORB_SLAM3_TRACKING_H
+#define ORB_SLAM3_TRACKING_H
 
-#include<opencv2/core/core.hpp>
-#include<opencv2/features2d/features2d.hpp>
-#include <opencv2/video/tracking.hpp>
-
-#include"Viewer.h"
-#include"FrameDrawer.h"
-#include"Atlas.h"
-#include"LocalMapping.h"
-#include"LoopClosing.h"
-#include"Frame.h"
-#include "ORBVocabulary.h"
-#include"KeyFrameDatabase.h"
-#include"ORBextractor.h"
-#include "Initializer.h"
-#include "MapDrawer.h"
-#include "System.h"
+#include "Frame.h"
 #include "ImuTypes.h"
+#include "ORBVocabulary.h"
 
-#include "CameraModels/GeometricCamera.h"
-
-#include <mutex>
-#include <unordered_set>
+#include <fstream>
 
 namespace ORB_SLAM3
 {
 
-class Viewer;
-class FrameDrawer;
 class Atlas;
+class FrameDrawer;
+class Initializer;
+class KeyFrame;
+class KeyFrameDatabase;
 class LocalMapping;
 class LoopClosing;
+class MapDrawer;
 class System;
+class Viewer;
 
 class Tracking
 {  
@@ -348,6 +335,6 @@ public:
     cv::Mat mImRight;
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM3
 
-#endif // TRACKING_H
+#endif // ORB_SLAM3_TRACKING_H

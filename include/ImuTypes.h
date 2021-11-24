@@ -16,20 +16,17 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ORB_SLAM3_IMUTYPES_H
+#define ORB_SLAM3_IMUTYPES_H
 
-#ifndef IMUTYPES_H
-#define IMUTYPES_H
-
-#include<vector>
-#include<utility>
-#include<opencv2/core/core.hpp>
-#include <Eigen/Core>
-#include <Eigen/Geometry>
 #include <Eigen/Dense>
-#include <mutex>
-
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
+#include <mutex>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/core/types.hpp>
+#include <vector>
+#include <ostream>
 
 namespace ORB_SLAM3
 {
@@ -278,8 +275,8 @@ cv::Mat InverseRightJacobianSO3(const cv::Mat &v);
 cv::Mat Skew(const cv::Mat &v);
 cv::Mat NormalizeRotation(const cv::Mat &R);
 
-}
+} // namespace IMU
 
-} //namespace ORB_SLAM2
+} // namespace ORB_SLAM3
 
-#endif // IMUTYPES_H
+#endif // ORB_SLAM3_IMUTYPES_H
