@@ -103,21 +103,16 @@ int FORB::distance(const FORB::TDescriptor &a,
 
 std::string FORB::toString(const FORB::TDescriptor &a)
 {
-  stringstream ss;
-  const unsigned char *p = a.ptr<unsigned char>();
-
-  for(int i = 0; i < a.cols; ++i, ++p)
-  {
-    ss << (int)*p << " ";
-  }
-
+  std::stringstream ss;
+  toTextStream(a, ss);
   return ss.str();
 }
 
 // --------------------------------------------------------------------------
 
-void FORB::fromString(FORB::TDescriptor &a, const std::string &s)
+void FORB::fromString(TDescriptor &a, const std::string &s)
 {
+#if 1
   a.create(1, FORB::L, CV_8U);
   unsigned char *p = a.ptr<unsigned char>();
 
@@ -130,7 +125,47 @@ void FORB::fromString(FORB::TDescriptor &a, const std::string &s)
     if(!ss.fail())
       *p = (unsigned char)n;
   }
+#else
+  fromTextStream(a, std::stringstream(s));
+#endif
+}
 
+// --------------------------------------------------------------------------
+
+void FORB::toTextStream(const TDescriptor &a, std::ostream &s)
+{
+  for(int i = 0; i < L; ++i)
+  {
+    s << (unsigned)a.at<uchar>(i);
+  }
+}
+
+// --------------------------------------------------------------------------
+
+void FORB::fromTextStream(TDescriptor &a, std::istream &s)
+{
+  a.create(1, L, CV_8U);
+  for(int i = 0; i < L; ++i)
+  {
+    unsigned n;
+    if (s >> n)
+      a.at<uchar>(i) = n;
+  }
+}
+
+// --------------------------------------------------------------------------
+
+void FORB::toBinaryStream(const TDescriptor &a, std::ostream &s)
+{
+  s.write(a.ptr<char>(), L);
+}
+
+// --------------------------------------------------------------------------
+
+void FORB::fromBinaryStream(TDescriptor &a, std::istream &s)
+{
+  a.create(1, L, CV_8U);
+  s.read(a.ptr<char>(), L);
 }
 
 // --------------------------------------------------------------------------

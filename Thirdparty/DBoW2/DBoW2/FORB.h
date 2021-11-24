@@ -13,6 +13,8 @@
 #include <opencv2/core/core.hpp>
 #include <vector>
 #include <string>
+#include <istream>
+#include <ostream>
 
 #include "FClass.h"
 
@@ -59,6 +61,34 @@ public:
    * @param s string version
    */
   static void fromString(TDescriptor &a, const std::string &s);
+
+  /**
+   * Returns a string version of the descriptor
+   * @param a descriptor
+   * @param s stream
+   */
+  static void toTextStream(const TDescriptor &a, std::ostream &s);
+
+  /**
+   * Returns a descriptor from a text stream
+   * @param a descriptor
+   * @param s stream
+   */
+  static void fromTextStream(TDescriptor &a, std::istream &s);
+
+  /**
+   * Returns a string version of the descriptor
+   * @param a descriptor
+   * @param s stream
+   */
+  static void toBinaryStream(const TDescriptor &a, std::ostream &s);
+
+  /**
+   * Returns a descriptor from a binary stream
+   * @param a descriptor
+   * @param s stream
+   */
+  static void fromBinaryStream(TDescriptor &a, std::istream &s);
 
   /**
    * Returns a mat with the descriptors in float format

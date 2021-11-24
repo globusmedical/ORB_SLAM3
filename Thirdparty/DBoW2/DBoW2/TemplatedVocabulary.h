@@ -17,15 +17,15 @@
 #ifndef __D_T_TEMPLATED_VOCABULARY__
 #define __D_T_TEMPLATED_VOCABULARY__
 
-#include <cassert>
-
-#include <vector>
-#include <numeric>
-#include <fstream>
-#include <string>
 #include <algorithm>
-#include <opencv2/core/core.hpp>
+#include <deque>
+#include <fstream>
 #include <limits>
+#include <numeric>
+#include <opencv2/core/core.hpp>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "FeatureVector.h"
 #include "BowVector.h"
@@ -65,7 +65,7 @@ public:
    */
   TemplatedVocabulary(const char *filename);
   
-  /** 
+  /**
    * Copy constructor
    * @param voc
    */
@@ -76,7 +76,7 @@ public:
    */
   virtual ~TemplatedVocabulary();
   
-  /** 
+  /**
    * Assigns the given vocabulary to this by copying its data and removing
    * all the data contained by this vocabulary before
    * @param voc
@@ -85,7 +85,7 @@ public:
   TemplatedVocabulary<TDescriptor, F>& operator=(
     const TemplatedVocabulary<TDescriptor, F> &voc);
   
-  /** 
+  /**
    * Creates a vocabulary from the training features with the already
    * defined parameters
    * @param training_features
@@ -182,7 +182,7 @@ public:
    */
   inline int getBranchingFactor() const { return m_k; }
   
-  /** 
+  /**
    * Returns the depth levels of the tree (L)
    * @return L
    */
@@ -194,6 +194,13 @@ public:
    */
   float getEffectiveLevels() const;
   
+  /**
+   * Returns the descriptor of a node
+   * @param nid node id
+   * @return descriptor
+   */
+  TDescriptor getNode(NodeId nid) const;
+
   /**
    * Returns the descriptor of a word
    * @param wid word id
@@ -208,13 +215,13 @@ public:
    */
   virtual inline WordValue getWordWeight(WordId wid) const;
   
-  /** 
+  /**
    * Returns the weighting method
    * @return weighting method
    */
   inline WeightingType getWeightingType() const { return m_weighting; }
   
-  /** 
+  /**
    * Returns the scoring method
    * @return scoring method
    */
@@ -233,6 +240,12 @@ public:
   void setScoringType(ScoringType type);
 
   /**
+   * Loads the vocabulary from a text or binary file
+   * @param filename
+   */
+  bool loadFromFile(const std::string &filename);
+
+  /**
    * Loads the vocabulary from a text file
    * @param filename
    */
@@ -243,6 +256,18 @@ public:
    * @param filename
    */
   void saveToTextFile(const std::string &filename) const;  
+
+  /**
+   * Loads the vocabulary from a binary file
+   * @param filename
+   */
+  bool loadFromBinaryFile(const std::string &filename);
+
+  /**
+   * Saves the vocabulary into a text file
+   * @param filename
+   */
+  void saveToBinaryFile(const std::string &filename) const;
 
   /**
    * Saves the vocabulary into a file
@@ -256,7 +281,7 @@ public:
    */
   void load(const std::string &filename);
   
-  /** 
+  /**
    * Saves the vocabulary to a file storage structure
    * @param fn node in file storage
    */
@@ -272,7 +297,7 @@ public:
   virtual void load(const cv::FileStorage &fs, 
     const std::string &name = "vocabulary");
   
-  /** 
+  /**
    * Stops those words whose weight is below minWeight.
    * Words are stopped by setting their weight to 0. There are not returned
    * later when transforming image features into vectors.
@@ -334,7 +359,7 @@ protected:
   void createScoringObject();
 
   /** 
-   * Returns a set of pointers to descriptores
+   * Returns a set of pointers to descriptors
    * @param training_features all the features
    * @param features (out) pointers to the training features
    */
@@ -1028,6 +1053,15 @@ float TemplatedVocabulary<TDescriptor,F>::getEffectiveLevels() const
 // --------------------------------------------------------------------------
 
 template<class TDescriptor, class F>
+TDescriptor TemplatedVocabulary<TDescriptor,F>::
+getNode(NodeId nid) const
+{
+  return m_nodes[nid].descriptor;
+}
+
+// --------------------------------------------------------------------------
+
+template<class TDescriptor, class F>
 TDescriptor TemplatedVocabulary<TDescriptor,F>::getWord(WordId wid) const
 {
   return m_nodes[m_words[wid]].descriptor;
@@ -1332,92 +1366,83 @@ int TemplatedVocabulary<TDescriptor,F>::stopWords(double minWeight)
 // --------------------------------------------------------------------------
 
 template<class TDescriptor, class F>
+bool TemplatedVocabulary<TDescriptor,F>::loadFromFile(const std::string &filename)
+{
+  if(std::ifstream(filename, std::ios_base::binary).peek() == 'V')
+    return loadFromBinaryFile(filename);
+  else
+    return loadFromTextFile(filename);
+}
+
+// --------------------------------------------------------------------------
+
+template<class TDescriptor, class F>
 bool TemplatedVocabulary<TDescriptor,F>::loadFromTextFile(const std::string &filename)
 {
-    std::ifstream f;
-    f.open(filename.c_str());
-        
-    if(f.eof())
-        return false;
+  std::ifstream f(filename);
+  if(!f)
+    return false;
 
-    m_words.clear();
-    m_nodes.clear();
+  m_words.clear();
+  m_nodes.clear();
 
-    std::string s;
-    getline(f,s);
-    std::stringstream ss;
-    ss << s;
-    ss >> m_k;
-    ss >> m_L;
-    int n1, n2;
-    ss >> n1;
-    ss >> n2;
+  f >> m_k;
+  f >> m_L;
+  int n1, n2;
+  f >> n1;
+  f >> n2;
 
-    if(m_k<0 || m_k>20 || m_L<1 || m_L>10 || n1<0 || n1>5 || n2<0 || n2>3)
-    {
-        std::cerr << "Vocabulary loading failure: This is not a correct text file!" << std::endl;
-        return false;
-    }
+  if(m_k<0 || m_k>20 || m_L<1 || m_L>10 || n1<0 || n1>5 || n2<0 || n2>3)
+  {
+    std::cerr << "Vocabulary loading failure: This is not a correct text file!" << std::endl;
+    return false;
+  }
     
-    m_scoring = (ScoringType)n1;
-    m_weighting = (WeightingType)n2;
-    createScoringObject();
+  m_scoring = (ScoringType)n1;
+  m_weighting = (WeightingType)n2;
+  createScoringObject();
 
-    // nodes
-    int expected_nodes =
+  // nodes
+  int expected_nodes =
     (int)((pow((double)m_k, (double)m_L + 1) - 1)/(m_k - 1));
-    m_nodes.reserve(expected_nodes);
+  m_nodes.reserve(expected_nodes);
 
-    m_words.reserve(pow((double)m_k, (double)m_L + 1));
+  m_words.reserve(pow((double)m_k, (double)m_L + 1));
 
-    m_nodes.resize(1);
-    m_nodes[0].id = 0;
-    while(!f.eof())
-    {
-        std::string snode;
-        getline(f,snode);
-        std::stringstream ssnode;
-        ssnode << snode;
-
-        int nid = m_nodes.size();
-        m_nodes.resize(m_nodes.size()+1);
-        m_nodes[nid].id = nid;
+  m_nodes.resize(1);
+  m_nodes[0].id = 0;
+  int pid;
+  while(f >> pid)
+  {
+    int nid = m_nodes.size();
+    m_nodes.resize(m_nodes.size()+1);
+    m_nodes[nid].id = nid;
         
-        int pid ;
-        ssnode >> pid;
-        m_nodes[nid].parent = pid;
-        m_nodes[pid].children.push_back(nid);
+    m_nodes[nid].parent = pid;
+    m_nodes[pid].children.push_back(nid);
 
-        int nIsLeaf;
-        ssnode >> nIsLeaf;
+    bool isLeaf;
+    f >> isLeaf;
 
-        std::stringstream ssd;
-        for(int iD=0;iD<F::L;iD++)
-        {
-            std::string sElement;
-            ssnode >> sElement;
-            ssd << sElement << " ";
-        }
-        F::fromString(m_nodes[nid].descriptor, ssd.str());
+    F::fromTextStream(m_nodes[nid].descriptor, f);
 
-        ssnode >> m_nodes[nid].weight;
+    f >> m_nodes[nid].weight;
 
-        if(nIsLeaf>0)
-        {
-            int wid = m_words.size();
-            m_words.resize(wid+1);
+    if(isLeaf)
+    {
+      int wid = m_words.size();
+      m_words.resize(wid+1);
 
-            m_nodes[nid].word_id = wid;
-            m_words[wid] = nid;
-        }
-        else
-        {
-            m_nodes[nid].children.reserve(m_k);
-        }
+      m_nodes[nid].word_id = wid;
+      m_words[wid] = nid;
     }
+    else
+    {
+      m_nodes[nid].children.reserve(m_k);
+    }
+  }
 
-    return true;
-
+  return true;
 }
 
 // --------------------------------------------------------------------------
@@ -1425,24 +1450,156 @@ bool TemplatedVocabulary<TDescriptor,F>::loadFromTextFile(const std::string &fil
 template<class TDescriptor, class F>
 void TemplatedVocabulary<TDescriptor,F>::saveToTextFile(const std::string &filename) const
 {
-    std::fstream f;
-    f.open(filename.c_str(),ios_base::out);
-    f << m_k << " " << m_L << " " << " " << m_scoring << " " << m_weighting << std::endl;
+  std::ofstream f(filename);
+  f << m_k << ' ' << m_L << ' ' << ' ' << m_scoring << ' ' << m_weighting << std::endl;
 
-    for(size_t i=1; i<m_nodes.size();i++)
+  for(size_t i=1; i<m_nodes.size();i++)
+  {
+    const Node& node = m_nodes[i];
+
+    f << node.parent << ' ' << node.isLeaf() << ' ';
+    F::toTextStream(node.descriptor, f);
+    f << (double)node.weight << std::endl;
+  }
+}
+
+// --------------------------------------------------------------------------
+
+template<class TDescriptor, class F>
+bool TemplatedVocabulary<TDescriptor,F>::loadFromBinaryFile(const std::string &filename)
+{
+  std::ifstream f(filename, std::ios_base::binary);
+  if(!f || f.get() != 'V')
+  {
+    return false;
+  }
+
+  m_nodes.clear();
+  m_words.clear();
+
+  std::uint32_t k;
+  f.read(reinterpret_cast<char*>(&k), sizeof(k));
+  m_k = k;
+
+  std::uint32_t L;
+  f.read(reinterpret_cast<char*>(&L), sizeof(L));
+  m_L = L;
+
+  std::uint32_t weighting;
+  f.read(reinterpret_cast<char*>(&weighting), sizeof(weighting));
+  m_weighting = WeightingType(weighting);
+
+  std::uint32_t scoring;
+  f.read(reinterpret_cast<char*>(&scoring), sizeof(scoring));
+  m_scoring = ScoringType(scoring);
+
+  std::uint32_t nodesSize;
+  f.read(reinterpret_cast<char*>(&nodesSize), sizeof(nodesSize));
+
+  std::uint32_t wordsSize;
+  f.read(reinterpret_cast<char*>(&wordsSize), sizeof(wordsSize));
+
+  m_nodes.reserve(nodesSize);
+  m_words.reserve(wordsSize);
+
+  NodeId pid = 0; // root
+  std::uint8_t childIndex = 0;
+  m_nodes.emplace_back();
+
+  std::uint8_t childrenSize;
+  f.read(reinterpret_cast<char*>(&childrenSize), sizeof(childrenSize));
+  m_nodes.back().children.resize(childrenSize);
+
+  while(f && m_nodes.size() != nodesSize)
+  {
+    NodeId cid = m_nodes.size();
+    m_nodes.emplace_back(cid);
+    Node& child = m_nodes.back();
+
+    f.read(reinterpret_cast<char*>(&childrenSize), sizeof(childrenSize));
+    child.children.resize(childrenSize);
+
+    F::fromBinaryStream(child.descriptor, f);
+
+    if(!childrenSize)
     {
-        const Node& node = m_nodes[i];
+      float weight;
+      f.read(reinterpret_cast<char*>(&weight), sizeof(weight));
+      child.weight = weight;
 
-        f << node.parent << " ";
-        if(node.isLeaf())
-            f << 1 << " ";
-        else
-            f << 0 << " ";
-
-        f << F::toString(node.descriptor) << " " << (double)node.weight << std::endl;
+      child.word_id = m_words.size();
+      m_words.emplace_back(cid);
     }
 
-    f.close();
+    child.parent = pid;
+    m_nodes[pid].children[childIndex++] = cid;
+    while(pid != m_nodes.size() && childIndex == m_nodes[pid].children.size())
+    {
+      ++pid;
+      childIndex = 0;
+    }
+  }
+
+  return pid == nodesSize && f.good() && f.get() == EOF;
+}
+
+// --------------------------------------------------------------------------
+
+template<class TDescriptor, class F>
+void TemplatedVocabulary<TDescriptor,F>::saveToBinaryFile(const std::string &filename) const
+{
+  std::ofstream f(filename, std::ios_base::binary);
+
+  f.put('V');
+
+  std::uint32_t k = m_k;
+  f.write(reinterpret_cast<const char*>(&k), sizeof(k));
+
+  std::uint32_t L = m_L;
+  f.write(reinterpret_cast<const char*>(&L), sizeof(L));
+
+  std::uint32_t weighting = m_weighting;
+  f.write(reinterpret_cast<const char*>(&weighting), sizeof(weighting));
+
+  std::uint32_t scoring = m_scoring;
+  f.write(reinterpret_cast<const char*>(&scoring), sizeof(scoring));
+
+  if(m_nodes.size() > std::numeric_limits<std::uint32_t>::max())
+  {
+    throw std::string("Too many nodes");
+  }
+  std::uint32_t nodesSize = m_nodes.size();
+  f.write(reinterpret_cast<const char*>(&nodesSize), sizeof(nodesSize));
+
+  std::uint32_t wordsSize = m_words.size();
+  f.write(reinterpret_cast<const char*>(&wordsSize), sizeof(wordsSize));
+
+  std::deque<NodeId> queue{{0}}; // root
+  while(!queue.empty())
+  {
+    const Node& parent = m_nodes[queue.front()];
+    queue.pop_front();
+    std::copy(parent.children.begin(), parent.children.end(),
+	      std::back_inserter(queue));
+
+    if(parent.children.size() > std::numeric_limits<std::uint8_t>::max())
+    {
+      throw std::string("Too many children");
+    }
+    std::uint8_t childrenSize = parent.children.size();
+    f.write(reinterpret_cast<const char *>(&childrenSize), sizeof(childrenSize));
+
+    if(parent.id)
+    {
+      F::toBinaryStream(parent.descriptor, f);
+    }
+
+    if(!childrenSize)
+    {
+      float weight = parent.weight;
+      f.write(reinterpret_cast<const char*>(&weight), sizeof(weight));
+    }
+  }
 }
 
 // --------------------------------------------------------------------------
