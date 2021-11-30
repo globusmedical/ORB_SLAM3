@@ -66,60 +66,61 @@ IF(WIN32)
 ENDIF(WIN32)
 
 add_library(${PROJECT_NAME} ${ORB_SLAM3_LIB_TYPE}
-  src/System.cc
-  src/Tracking.cc
-  src/LocalMapping.cc
-  src/LoopClosing.cc
-  src/ORBextractor.cc
-  src/ORBmatcher.cc
-  src/FrameDrawer.cc
-  src/Converter.cc
-  src/MapPoint.cc
-  src/KeyFrame.cc
-  src/Atlas.cc
-  src/Map.cc
-  src/MapDrawer.cc
-  src/Optimizer.cc
-  src/Frame.cc
-  src/KeyFrameDatabase.cc
-  src/Sim3Solver.cc
-  src/Initializer.cc
-  src/Viewer.cc
-  src/ImuTypes.cc
-  src/G2oTypes.cc
-  src/CameraModels/Pinhole.cpp
-  src/CameraModels/KannalaBrandt8.cpp
-  src/OptimizableTypes.cpp
-  src/MLPnPsolver.cpp
-  src/TwoViewReconstruction.cc
-  include/System.h
-  include/Tracking.h
+  include/Atlas.h
+  include/CameraModels/GeometricCamera.h
+  include/CameraModels/KannalaBrandt8.h
+  include/CameraModels/Pinhole.h
+  include/Config.h
+  include/Converter.h
+  include/Frame.h
+  include/FrameDrawer.h
+  include/G2oTypes.h
+  include/ImuTypes.h
+  include/Initializer.h
+  include/KeyFrame.h
+  include/KeyFrameDatabase.h
   include/LocalMapping.h
   include/LoopClosing.h
-  include/ORBextractor.h
-  include/ORBmatcher.h
-  include/FrameDrawer.h
-  include/Converter.h
-  include/MapPoint.h
-  include/KeyFrame.h
-  include/Atlas.h
+  include/MLPnPsolver.h
   include/Map.h
   include/MapDrawer.h
-  include/Optimizer.h
-  include/Frame.h
-  include/KeyFrameDatabase.h
-  include/Sim3Solver.h
-  include/Initializer.h
-  include/Viewer.h
-  include/ImuTypes.h
-  include/G2oTypes.h
-  include/CameraModels/GeometricCamera.h
-  include/CameraModels/Pinhole.h
-  include/CameraModels/KannalaBrandt8.h
+  include/MapPoint.h
+  include/ORBextractor.h
+  include/ORBmatcher.h
   include/OptimizableTypes.h
-  include/MLPnPsolver.h
+  include/Optimizer.h
+  include/Sim3Solver.h
+  include/System.h
+  include/Tracking.h
   include/TwoViewReconstruction.h
-  include/Config.h
+  include/Viewer.h
+  src/Atlas.cc
+  src/CameraModels/KannalaBrandt8.cpp
+  src/CameraModels/Pinhole.cpp
+  src/Converter.cc
+  src/Frame.cc
+  src/FrameDrawer.cc
+  src/G2oTypes.cc
+  src/ImuTypes.cc
+  src/Initializer.cc
+  src/KeyFrame.cc
+  src/KeyFrameDatabase.cc
+  src/LocalMapping.cc
+  src/LoopClosing.cc
+  src/MLPnPsolver.cpp
+  src/Map.cc
+  src/MapDrawer.cc
+  src/MapPoint.cc
+  src/ORBVocabulary.cc
+  src/ORBextractor.cc
+  src/ORBmatcher.cc
+  src/OptimizableTypes.cpp
+  src/Optimizer.cc
+  src/Sim3Solver.cc
+  src/System.cc
+  src/Tracking.cc
+  src/TwoViewReconstruction.cc
+  src/Viewer.cc
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

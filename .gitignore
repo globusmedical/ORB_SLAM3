@@ -48,3 +48,6 @@ cmake-build-debug/
 
 *.pyc
 *.osa
+
+*~
+\#*#

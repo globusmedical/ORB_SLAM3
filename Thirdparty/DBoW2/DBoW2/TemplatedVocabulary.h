@@ -1039,14 +1039,14 @@ template<class TDescriptor, class F>
 float TemplatedVocabulary<TDescriptor,F>::getEffectiveLevels() const
 {
   long sum = 0;
-  typename std::vector<Node*>::const_iterator wit;
-  for(wit = m_words.begin(); wit != m_words.end(); ++wit)
+  for(const Node &node : m_nodes)
   {
-    const Node *p = *wit;
-    
-    for(; p->id != 0; sum++) p = &m_nodes[p->parent];
+    for(const Node *parent = &node; parent->id != 0;
+	parent = &m_nodes[parent->parent])
+    {
+      ++sum;
+    }
   }
-  
   return (float)((double)sum / (double)m_words.size());
 }
 

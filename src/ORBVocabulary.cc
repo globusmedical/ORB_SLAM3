@@ -16,25 +16,8 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ORB_SLAM3_ORBVOCABULARY_H
-#define ORB_SLAM3_ORBVOCABULARY_H
+#include "ORBVocabulary.h"
 
-#include "Thirdparty/DBoW2/DBoW2/FORB.h"
+#include "Thirdparty/DBoW2/DBoW2/TemplatedVocabulary.h"
 
-namespace DBoW2 {
-
-template<class TDescriptor, class F>
-class TemplatedVocabulary;
-
-} // namespace DBoW2
-
-namespace ORB_SLAM3 {
-
-typedef DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB>
-  ORBVocabulary;
-
-extern template ORBVocabulary;
-
-} // namespace ORB_SLAM3
-
-#endif // ORB_SLAM3_ORBVOCABULARY_H
+template ORB_SLAM3::ORBVocabulary;
