@@ -45,13 +45,13 @@ public:
 
     void SetWorldPos(const cv::Mat &Pos);
 
-    cv::Mat GetWorldPos();
+    cv::Mat GetWorldPos() const;
 
-    cv::Mat GetNormal();
+    cv::Mat GetNormal() const;
 
-    cv::Matx31f GetWorldPos2();
+    cv::Matx31f GetWorldPos2() const;
 
-    cv::Matx31f GetNormal2();
+    cv::Matx31f GetNormal2() const;
 
     KeyFrame* GetReferenceKeyFrame();
 
@@ -141,40 +141,40 @@ public:
 
 protected:    
 
-     // Position in absolute coordinates
-     cv::Mat mWorldPos;
-     cv::Matx31f mWorldPosx;
+    // Position in absolute coordinates
+    cv::Mat mWorldPos;
+    cv::Matx31f mWorldPosx;
 
-     // Keyframes observing the point and associated index in keyframe
-     std::map<KeyFrame*,std::tuple<int,int> > mObservations;
+    // Keyframes observing the point and associated index in keyframe
+    std::map<KeyFrame*,std::tuple<int,int> > mObservations;
 
-     // Mean viewing direction
-     cv::Mat mNormalVector;
-     cv::Matx31f mNormalVectorx;
+    // Mean viewing direction
+    cv::Mat mNormalVector;
+    cv::Matx31f mNormalVectorx;
 
-     // Best descriptor to fast matching
-     cv::Mat mDescriptor;
+    // Best descriptor to fast matching
+    cv::Mat mDescriptor;
 
-     // Reference KeyFrame
-     KeyFrame* mpRefKF;
+    // Reference KeyFrame
+    KeyFrame* mpRefKF;
 
-     // Tracking counters
-     int mnVisible;
-     int mnFound;
+    // Tracking counters
+    int mnVisible;
+    int mnFound;
 
-     // Bad flag (we do not currently erase MapPoint from memory)
-     bool mbBad;
-     MapPoint* mpReplaced;
+    // Bad flag (we do not currently erase MapPoint from memory)
+    bool mbBad;
+    MapPoint* mpReplaced;
 
-     // Scale invariance distances
-     float mfMinDistance;
-     float mfMaxDistance;
+    // Scale invariance distances
+    float mfMinDistance;
+    float mfMaxDistance;
 
-     Map* mpMap;
+    Map* mpMap;
 
-     std::mutex mMutexPos;
-     std::mutex mMutexFeatures;
-     std::mutex mMutexMap;
+    mutable std::mutex mMutexPos;
+    std::mutex mMutexFeatures;
+    std::mutex mMutexMap;
 };
 
 } // namespace ORB_SLAM3

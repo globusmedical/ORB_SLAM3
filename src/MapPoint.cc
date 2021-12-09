@@ -130,25 +130,25 @@ void MapPoint::SetWorldPos(const cv::Mat &Pos)
     mWorldPosx = cv::Matx31f(Pos.at<float>(0), Pos.at<float>(1), Pos.at<float>(2));
 }
 
-cv::Mat MapPoint::GetWorldPos()
+cv::Mat MapPoint::GetWorldPos() const
 {
     unique_lock<mutex> lock(mMutexPos);
     return mWorldPos.clone();
 }
 
-cv::Mat MapPoint::GetNormal()
+cv::Mat MapPoint::GetNormal() const
 {
     unique_lock<mutex> lock(mMutexPos);
     return mNormalVector.clone();
 }
 
-cv::Matx31f MapPoint::GetWorldPos2()
+cv::Matx31f MapPoint::GetWorldPos2() const
 {
     unique_lock<mutex> lock(mMutexPos);
     return mWorldPosx;
 }
 
-cv::Matx31f MapPoint::GetNormal2()
+cv::Matx31f MapPoint::GetNormal2() const
 {
     unique_lock<mutex> lock(mMutexPos);
     return mNormalVectorx;
