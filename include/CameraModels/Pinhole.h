@@ -54,10 +54,7 @@ public:
         mnType = CAM_PINHOLE;
     }
 
-
-    ~Pinhole(){
-        if(tvr) delete tvr;
-    }
+    ~Pinhole();
 
     cv::Point2f project(const cv::Point3f &p3D);
     cv::Point2f project(const cv::Matx31f &m3D);

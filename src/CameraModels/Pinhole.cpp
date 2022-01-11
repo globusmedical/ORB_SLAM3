@@ -25,6 +25,10 @@ namespace ORB_SLAM3
 
 long unsigned int GeometricCamera::nNextId=0;
 
+Pinhole::~Pinhole() {
+    delete tvr;
+}
+
 cv::Point2f Pinhole::project(const cv::Point3f &p3D) {
     return cv::Point2f(mvParameters[0] * p3D.x / p3D.z + mvParameters[2],
                        mvParameters[1] * p3D.y / p3D.z + mvParameters[3]);

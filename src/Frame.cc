@@ -29,7 +29,7 @@
 #include "ORBmatcher.h"
 #include "Thirdparty/DBoW2/DBoW2/TemplatedVocabulary.h"
 
-#include <opencv2/imgproc.hpp>
+#include <opencv2/calib3d.hpp>
 #include <thread>
 
 using namespace std;
