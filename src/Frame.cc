@@ -141,6 +141,8 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
     N = mvKeys.size();
     if(mvKeys.empty())
         return;
+    mvKeysRight.resize(N);
+    mvKeysUn.resize(N);
 
     UndistortKeyPoints();
 
@@ -193,8 +195,6 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
         mVw = cv::Mat::zeros(3,1,CV_32F);
     }
 
-    AssignFeaturesToGrid();
-
     mpMutexImu = new std::mutex();
 
     //Set no stereo fisheye information
@@ -207,6 +207,8 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
     mvStereo3Dpoints = vector<cv::Mat>(0);
     monoLeft = -1;
     monoRight = -1;
+
+    AssignFeaturesToGrid();
 }
 
 Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth, GeometricCamera* pCamera,Frame* pPrevF, const IMU::Calib &ImuCalib)
@@ -240,9 +242,10 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
 
 
     N = mvKeys.size();
-
     if(mvKeys.empty())
         return;
+    mvKeysRight.resize(N);
+    mvKeysUn.resize(N);
 
     UndistortKeyPoints();
 
@@ -325,6 +328,8 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
     N = mvKeys.size();
     if(mvKeys.empty())
         return;
+    mvKeysRight.resize(N);
+    mvKeysUn.resize(N);
 
     UndistortKeyPoints();
 
@@ -410,6 +415,9 @@ void Frame::AssignFeaturesToGrid()
 
 
 
+    mvKeys.resize(N);
+    mvKeysRight.resize(N);
+    mvKeysUn.resize(N);
     for(int i=0;i<N;i++)
     {
         const cv::KeyPoint &kp = (Nleft == -1) ? mvKeysUn[i]
@@ -832,8 +840,8 @@ void Frame::ComputeStereoMatches()
         const cv::KeyPoint &kp = mvKeysRight[iR];
         const float &kpY = kp.pt.y;
         const float r = 2.0f*mvScaleFactors[mvKeysRight[iR].octave];
-        const int maxr = ceil(kpY+r);
-        const int minr = floor(kpY-r);
+        const int maxr = min(max(int(ceil(kpY+r)), 0), nRows - 1);
+        const int minr = min(max(int(floor(kpY-r)), 0), nRows - 1);
 
         for(int yi=minr;yi<=maxr;yi++)
             vRowIndices[yi].push_back(iR);
