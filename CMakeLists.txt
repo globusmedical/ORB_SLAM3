@@ -87,6 +87,7 @@ add_library(${PROJECT_NAME} ${ORB_SLAM3_LIB_TYPE}
   include/MapPoint.h
   include/ORBextractor.h
   include/ORBmatcher.h
+  include/ORBVocabulary.h
   include/OptimizableTypes.h
   include/Optimizer.h
   include/Sim3Solver.h
@@ -111,7 +112,6 @@ add_library(${PROJECT_NAME} ${ORB_SLAM3_LIB_TYPE}
   src/Map.cc
   src/MapDrawer.cc
   src/MapPoint.cc
-  src/ORBVocabulary.cc
   src/ORBextractor.cc
   src/ORBmatcher.cc
   src/OptimizableTypes.cpp

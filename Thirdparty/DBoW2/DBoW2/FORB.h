@@ -32,9 +32,11 @@ public:
   /// Descriptor length (in bytes)
   static const int L;
 
+  ~FORB() = default;
+
   /**
    * Calculates the mean value of a set of descriptors
-   * @param descriptors
+   * @param descriptors descriptors
    * @param mean mean descriptor
    */
   static void meanValue(const std::vector<pDescriptor> &descriptors,
@@ -42,8 +44,8 @@ public:
 
   /**
    * Calculates the distance between two descriptors
-   * @param a
-   * @param b
+   * @param a descriptor
+   * @param b descriptor
    * @return distance
    */
   static int distance(const TDescriptor &a, const TDescriptor &b);
@@ -92,7 +94,7 @@ public:
 
   /**
    * Returns a mat with the descriptors in float format
-   * @param descriptors
+   * @param descriptors descriptors
    * @param mat (out) NxL 32F matrix
    */
   static void toMat32F(const std::vector<TDescriptor> &descriptors,

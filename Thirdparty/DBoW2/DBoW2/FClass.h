@@ -24,12 +24,15 @@ namespace DBoW2 {
  */
 class FClass
 {
+protected:
   class TDescriptor;
   typedef const TDescriptor *pDescriptor;
-  
+
+  virtual ~FClass() = default;
+
   /**
    * Calculates the mean value of a set of descriptors
-   * @param descriptors
+   * @param descriptors descriptors
    * @param mean mean descriptor
    */
   virtual void meanValue(const std::vector<pDescriptor> &descriptors, 
@@ -37,8 +40,8 @@ class FClass
   
   /**
    * Calculates the distance between two descriptors
-   * @param a
-   * @param b
+   * @param a descriptor
+   * @param b descriptor
    * @return distance
    */
   static double distance(const TDescriptor &a, const TDescriptor &b);
@@ -59,7 +62,7 @@ class FClass
 
   /**
    * Returns a mat with the descriptors in float format
-   * @param descriptors
+   * @param descriptors descriptors
    * @param mat (out) NxL 32F matrix
    */
   static void toMat32F(const std::vector<TDescriptor> &descriptors, 
