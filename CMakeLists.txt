@@ -172,8 +172,7 @@ if(realsense2_FOUND)
 endif()
 
 find_package(Boost REQUIRED COMPONENTS serialization)
-message(STATUS "Boost_LIBRARIES: ${Boost_LIBRARIES}")
-target_link_libraries(${PROJECT_NAME} PUBLIC ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC Boost::Boost Boost::serialization)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   find_package(Backward)
