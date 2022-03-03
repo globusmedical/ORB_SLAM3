@@ -44,7 +44,7 @@ KeyFrame::KeyFrame():
         /*mBowVec(nullptr), mFeatVec(nullptr),*/ mnScaleLevels(0), mfScaleFactor(0),
         mfLogScaleFactor(0), mvScaleFactors(0), mvLevelSigma2(0),
         mvInvLevelSigma2(0), mnMinX(0), mnMinY(0), mnMaxX(0),
-        mnMaxY(0), /*mK(nullptr),*/  mPrevKF(static_cast<KeyFrame*>(nullptr)), mNextKF(nullptr), mbFirstConnection(true), mpParent(nullptr), mbNotErase(false),
+        mnMaxY(0), /*mK(nullptr),*/  mPrevKF(nullptr), mNextKF(nullptr), mpImuPreintegrated(nullptr), mbFirstConnection(true), mpParent(nullptr), mbNotErase(false),
         mbToBeErased(false), mbBad(false), mHalfBaseline(0), mbCurrentPlaceRecognition(false), mbHasHessian(false), mnMergeCorrectedForKF(0),
         NLeft(0),NRight(0), mnNumberOfOpt(0)
 {

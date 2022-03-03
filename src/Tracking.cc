@@ -501,13 +501,25 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
     cout << endl << "Camera Parameters: " << endl;
     bool b_miss_params = false;
 
-    string sCameraName = fSettings["Camera.type"];
+    cv::FileNode camera = fSettings["Camera"];
+    cv::FileNode camera2 = fSettings["Camera2"];
+
+    cv::FileNode node = fSettings["Camera.type"];
+    if (node.empty())
+    {
+        node = camera["type"];
+    }
+    string sCameraName = node;
     if(sCameraName == "PinHole")
     {
         float fx, fy, cx, cy;
 
         // Camera calibration parameters
-        cv::FileNode node = fSettings["Camera.fx"];
+        node = fSettings["Camera.fx"];
+        if(node.empty())
+        {
+            node = camera["fx"];
+        }
         if(!node.empty() && node.isReal())
         {
             fx = node.real();
@@ -519,6 +531,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         }
 
         node = fSettings["Camera.fy"];
+        if(node.empty())
+        {
+            node = camera["fy"];
+        }
         if(!node.empty() && node.isReal())
         {
             fy = node.real();
@@ -530,6 +546,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         }
 
         node = fSettings["Camera.cx"];
+        if(node.empty())
+        {
+            node = camera["cx"];
+        }
         if(!node.empty() && node.isReal())
         {
             cx = node.real();
@@ -541,6 +561,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         }
 
         node = fSettings["Camera.cy"];
+        if(node.empty())
+        {
+            node = camera["cy"];
+        }
         if(!node.empty() && node.isReal())
         {
             cy = node.real();
@@ -553,6 +577,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
 
         // Distortion parameters
         node = fSettings["Camera.k1"];
+        if(node.empty())
+        {
+            node = camera["k1"];
+        }
         if(!node.empty() && node.isReal())
         {
             mDistCoef.at<float>(0) = node.real();
@@ -564,6 +592,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         }
 
         node = fSettings["Camera.k2"];
+        if(node.empty())
+        {
+            node = camera["k2"];
+        }
         if(!node.empty() && node.isReal())
         {
             mDistCoef.at<float>(1) = node.real();
@@ -575,6 +607,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         }
 
         node = fSettings["Camera.p1"];
+        if(node.empty())
+        {
+            node = camera["p1"];
+        }
         if(!node.empty() && node.isReal())
         {
             mDistCoef.at<float>(2) = node.real();
@@ -586,6 +622,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         }
 
         node = fSettings["Camera.p2"];
+        if(node.empty())
+        {
+            node = camera["p2"];
+        }
         if(!node.empty() && node.isReal())
         {
             mDistCoef.at<float>(3) = node.real();
@@ -597,6 +637,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         }
 
         node = fSettings["Camera.k3"];
+        if(node.empty())
+        {
+            node = camera["k3"];
+        }
         if(!node.empty() && node.isReal())
         {
             mDistCoef.resize(5);
@@ -643,7 +687,11 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         float k1, k2, k3, k4;
 
         // Camera calibration parameters
-        cv::FileNode node = fSettings["Camera.fx"];
+        node = fSettings["Camera.fx"];
+        if(node.empty())
+        {
+            node = camera["fx"];
+        }
         if(!node.empty() && node.isReal())
         {
             fx = node.real();
@@ -654,6 +702,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
             b_miss_params = true;
         }
         node = fSettings["Camera.fy"];
+        if(node.empty())
+        {
+            node = camera["fy"];
+        }
         if(!node.empty() && node.isReal())
         {
             fy = node.real();
@@ -665,6 +717,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         }
 
         node = fSettings["Camera.cx"];
+        if(node.empty())
+        {
+            node = camera["cx"];
+        }
         if(!node.empty() && node.isReal())
         {
             cx = node.real();
@@ -676,6 +732,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         }
 
         node = fSettings["Camera.cy"];
+        if(node.empty())
+        {
+            node = camera["cy"];
+        }
         if(!node.empty() && node.isReal())
         {
             cy = node.real();
@@ -688,6 +748,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
 
         // Distortion parameters
         node = fSettings["Camera.k1"];
+        if(node.empty())
+        {
+            node = camera["k1"];
+        }
         if(!node.empty() && node.isReal())
         {
             k1 = node.real();
@@ -698,6 +762,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
             b_miss_params = true;
         }
         node = fSettings["Camera.k2"];
+        if(node.empty())
+        {
+            node = camera["k2"];
+        }
         if(!node.empty() && node.isReal())
         {
             k2 = node.real();
@@ -709,6 +777,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         }
 
         node = fSettings["Camera.k3"];
+        if(node.empty())
+        {
+            node = camera["k3"];
+        }
         if(!node.empty() && node.isReal())
         {
             k3 = node.real();
@@ -720,6 +792,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         }
 
         node = fSettings["Camera.k4"];
+        if(node.empty())
+        {
+            node = camera["k4"];
+        }
         if(!node.empty() && node.isReal())
         {
             k4 = node.real();
@@ -755,7 +831,11 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
         if(mSensor==System::STEREO || mSensor==System::IMU_STEREO){
             // Right camera
             // Camera calibration parameters
-            cv::FileNode node = fSettings["Camera2.fx"];
+            node = fSettings["Camera2.fx"];
+            if(node.empty())
+            {
+                node = camera2["fx"];
+            }
             if(!node.empty() && node.isReal())
             {
                 fx = node.real();
@@ -766,6 +846,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
                 b_miss_params = true;
             }
             node = fSettings["Camera2.fy"];
+            if(node.empty())
+            {
+                node = camera2["fy"];
+            }
             if(!node.empty() && node.isReal())
             {
                 fy = node.real();
@@ -777,6 +861,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
             }
 
             node = fSettings["Camera2.cx"];
+            if(node.empty())
+            {
+                node = camera2["cx"];
+            }
             if(!node.empty() && node.isReal())
             {
                 cx = node.real();
@@ -788,6 +876,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
             }
 
             node = fSettings["Camera2.cy"];
+            if(node.empty())
+            {
+                node = camera2["cy"];
+            }
             if(!node.empty() && node.isReal())
             {
                 cy = node.real();
@@ -800,6 +892,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
 
             // Distortion parameters
             node = fSettings["Camera2.k1"];
+            if(node.empty())
+            {
+                node = camera2["k1"];
+            }
             if(!node.empty() && node.isReal())
             {
                 k1 = node.real();
@@ -810,6 +906,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
                 b_miss_params = true;
             }
             node = fSettings["Camera2.k2"];
+            if(node.empty())
+            {
+                node = camera2["k2"];
+            }
             if(!node.empty() && node.isReal())
             {
                 k2 = node.real();
@@ -821,6 +921,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
             }
 
             node = fSettings["Camera2.k3"];
+            if(node.empty())
+            {
+                node = camera2["k3"];
+            }
             if(!node.empty() && node.isReal())
             {
                 k3 = node.real();
@@ -832,6 +936,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
             }
 
             node = fSettings["Camera2.k4"];
+            if(node.empty())
+            {
+                node = camera2["k4"];
+            }
             if(!node.empty() && node.isReal())
             {
                 k4 = node.real();
@@ -850,6 +958,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
             int rightLappingEnd = -1;
 
             node = fSettings["Camera.lappingBegin"];
+            if(node.empty())
+            {
+                node = camera["lappingBegin"];
+            }
             if(!node.empty() && node.isInt())
             {
                 leftLappingBegin = node.operator int();
@@ -859,6 +971,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
                 std::cout << "WARNING: Camera.lappingBegin not correctly defined" << std::endl;
             }
             node = fSettings["Camera.lappingEnd"];
+            if(node.empty())
+            {
+                node = camera["lappingEnd"];
+            }
             if(!node.empty() && node.isInt())
             {
                 leftLappingEnd = node.operator int();
@@ -868,6 +984,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
                 std::cout << "WARNING: Camera.lappingEnd not correctly defined" << std::endl;
             }
             node = fSettings["Camera2.lappingBegin"];
+            if(node.empty())
+            {
+                node = camera2["lappingBegin"];
+            }
             if(!node.empty() && node.isInt())
             {
                 rightLappingBegin = node.operator int();
@@ -877,6 +997,10 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
                 std::cout << "WARNING: Camera2.lappingBegin not correctly defined" << std::endl;
             }
             node = fSettings["Camera2.lappingEnd"];
+            if(node.empty())
+            {
+                node = camera2["lappingEnd"];
+            }
             if(!node.empty() && node.isInt())
             {
                 rightLappingEnd = node.operator int();
@@ -950,7 +1074,11 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
 
     if(mSensor==System::STEREO || mSensor==System::IMU_STEREO)
     {
-        cv::FileNode node = fSettings["Camera.bf"];
+        node = fSettings["Camera.bf"];
+        if(node.empty())
+        {
+            node = camera["bf"];
+        }
         if(!node.empty() && node.isReal())
         {
             mbf = node.real();
@@ -963,7 +1091,12 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
 
     }
 
-    float fps = fSettings["Camera.fps"];
+    node = fSettings["Camera.fps"];
+    if(node.empty())
+    {
+        node = camera["fps"];
+    }
+    float fps = node;
     if(fps==0)
         fps=30;
 
@@ -974,7 +1107,12 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
     cout << "- fps: " << fps << endl;
 
 
-    int nRGB = fSettings["Camera.RGB"];
+    node = fSettings["Camera.RGB"];
+    if(node.empty())
+    {
+        node = camera["RGB"];
+    }
+    int nRGB = node;
     mbRGB = nRGB;
 
     if(mbRGB)
@@ -1034,7 +1172,13 @@ bool Tracking::ParseORBParamFile(cv::FileStorage &fSettings)
     int nFeatures, nLevels, fIniThFAST, fMinThFAST;
     float fScaleFactor;
 
+    cv::FileNode orbExtractor = fSettings["ORBextractor"];
+
     cv::FileNode node = fSettings["ORBextractor.nFeatures"];
+    if(node.empty())
+    {
+        node = orbExtractor["nFeatures"];
+    }
     if(!node.empty() && node.isInt())
     {
         nFeatures = node.operator int();
@@ -1046,6 +1190,10 @@ bool Tracking::ParseORBParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["ORBextractor.scaleFactor"];
+    if(node.empty())
+    {
+        node = orbExtractor["scaleFactor"];
+    }
     if(!node.empty() && node.isReal())
     {
         fScaleFactor = node.real();
@@ -1057,6 +1205,10 @@ bool Tracking::ParseORBParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["ORBextractor.nLevels"];
+    if(node.empty())
+    {
+        node = orbExtractor["nLevels"];
+    }
     if(!node.empty() && node.isInt())
     {
         nLevels = node.operator int();
@@ -1068,6 +1220,10 @@ bool Tracking::ParseORBParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["ORBextractor.iniThFAST"];
+    if(node.empty())
+    {
+        node = orbExtractor["iniThFAST"];
+    }
     if(!node.empty() && node.isInt())
     {
         fIniThFAST = node.operator int();
@@ -1079,6 +1235,10 @@ bool Tracking::ParseORBParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["ORBextractor.minThFAST"];
+    if(node.empty())
+    {
+        node = orbExtractor["minThFAST"];
+    }
     if(!node.empty() && node.isInt())
     {
         fMinThFAST = node.operator int();
@@ -1116,6 +1276,8 @@ bool Tracking::ParseIMUParamFile(cv::FileStorage &fSettings)
 {
     bool b_miss_params = false;
 
+    cv::FileNode imu = fSettings["IMU"];
+
     cv::Mat Tbc;
     cv::FileNode node = fSettings["Tbc"];
     if(!node.empty())
@@ -1140,6 +1302,10 @@ bool Tracking::ParseIMUParamFile(cv::FileStorage &fSettings)
     float freq, Ng, Na, Ngw, Naw;
 
     node = fSettings["IMU.Frequency"];
+    if(node.empty())
+    {
+        node = imu["Frequency"];
+    }
     if(!node.empty() && node.isInt())
     {
         freq = node.operator int();
@@ -1151,6 +1317,10 @@ bool Tracking::ParseIMUParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["IMU.NoiseGyro"];
+    if(node.empty())
+    {
+        node = imu["NoiseGyro"];
+    }
     if(!node.empty() && node.isReal())
     {
         Ng = node.real();
@@ -1162,6 +1332,10 @@ bool Tracking::ParseIMUParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["IMU.NoiseAcc"];
+    if(node.empty())
+    {
+        node = imu["NoiseAcc"];
+    }
     if(!node.empty() && node.isReal())
     {
         Na = node.real();
@@ -1173,6 +1347,10 @@ bool Tracking::ParseIMUParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["IMU.GyroWalk"];
+    if(node.empty())
+    {
+        node = imu["GyroWalk"];
+    }
     if(!node.empty() && node.isReal())
     {
         Ngw = node.real();
@@ -1184,6 +1362,10 @@ bool Tracking::ParseIMUParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["IMU.AccWalk"];
+    if(node.empty())
+    {
+        node = imu["AccWalk"];
+    }
     if(!node.empty() && node.isReal())
     {
         Naw = node.real();
@@ -3799,10 +3981,36 @@ vector<MapPoint*> Tracking::GetLocalMapMPS()
 void Tracking::ChangeCalibration(const string &strSettingPath)
 {
     cv::FileStorage fSettings(strSettingPath, cv::FileStorage::READ);
-    float fx = fSettings["Camera.fx"];
-    float fy = fSettings["Camera.fy"];
-    float cx = fSettings["Camera.cx"];
-    float cy = fSettings["Camera.cy"];
+
+    cv::FileNode camera = fSettings["Camera"];
+
+    cv::FileNode node = fSettings["Camera.fx"];
+    if(node.empty())
+    {
+        node = camera["fx"];
+    }
+    float fx = node;
+
+    node = fSettings["Camera.fy"];
+    if(node.empty())
+    {
+        node = camera["fy"];
+    }
+    float fy = node;
+
+    node = fSettings["Camera.cx"];
+    if(node.empty())
+    {
+        node = camera["cx"];
+    }
+    float cx = node;
+
+    node = fSettings["Camera.cy"];
+    if(node.empty())
+    {
+        node = camera["cy"];
+    }
+    float cy = node;
 
     cv::Mat K = cv::Mat::eye(3,3,CV_32F);
     K.at<float>(0,0) = fx;
@@ -3812,19 +4020,53 @@ void Tracking::ChangeCalibration(const string &strSettingPath)
     K.copyTo(mK);
 
     cv::Mat DistCoef(4,1,CV_32F);
-    DistCoef.at<float>(0) = fSettings["Camera.k1"];
-    DistCoef.at<float>(1) = fSettings["Camera.k2"];
-    DistCoef.at<float>(2) = fSettings["Camera.p1"];
-    DistCoef.at<float>(3) = fSettings["Camera.p2"];
-    const float k3 = fSettings["Camera.k3"];
-    if(k3!=0)
+
+    node = fSettings["Camera.k1"];
+    if(node.empty())
+    {
+        node = camera["k1"];
+    }
+    DistCoef.at<float>(0) = node;
+
+    node = fSettings["Camera.k2"];
+    if(node.empty())
+    {
+        node = camera["k2"];
+    }
+    DistCoef.at<float>(1) = node;
+
+    node = fSettings["Camera.p1"];
+    if(node.empty())
+    {
+        node = camera["p1"];
+    }
+    DistCoef.at<float>(2) = node;
+
+    node = fSettings["Camera.p2"];
+    if(node.empty())
+    {
+        node = camera["p2"];
+    }
+    DistCoef.at<float>(3) = node;
+
+    node = fSettings["Camera.k3"];
+    if(node.empty())
+    {
+        node = camera["k3"];
+    }
+    if(!node.empty())
     {
         DistCoef.resize(5);
-        DistCoef.at<float>(4) = k3;
+        DistCoef.at<float>(4) = node;
     }
     DistCoef.copyTo(mDistCoef);
 
-    mbf = fSettings["Camera.bf"];
+    node = fSettings["Camera.bf"];
+    if(node.empty())
+    {
+        node = camera["bf"];
+    }
+    mbf = node;
 
     Frame::mbInitialComputations = true;
 }

@@ -54,7 +54,13 @@ bool MapDrawer::ParseViewerParamFile(cv::FileStorage &fSettings)
 {
     bool b_miss_params = false;
 
+    cv::FileNode viewer = fSettings["Viewer"];
+
     cv::FileNode node = fSettings["Viewer.KeyFrameSize"];
+    if(node.empty())
+    {
+        node = viewer["KeyFrameSize"];
+    }
     if(!node.empty())
     {
         mKeyFrameSize = node.real();
@@ -66,6 +72,10 @@ bool MapDrawer::ParseViewerParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["Viewer.KeyFrameLineWidth"];
+    if(node.empty())
+    {
+        node = viewer["KeyFrameLineWidth"];
+    }
     if(!node.empty())
     {
         mKeyFrameLineWidth = node.real();
@@ -77,6 +87,10 @@ bool MapDrawer::ParseViewerParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["Viewer.GraphLineWidth"];
+    if(node.empty())
+    {
+        node = viewer["GraphLineWidth"];
+    }
     if(!node.empty())
     {
         mGraphLineWidth = node.real();
@@ -88,6 +102,10 @@ bool MapDrawer::ParseViewerParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["Viewer.PointSize"];
+    if(node.empty())
+    {
+        node = viewer["PointSize"];
+    }
     if(!node.empty())
     {
         mPointSize = node.real();
@@ -99,6 +117,10 @@ bool MapDrawer::ParseViewerParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["Viewer.CameraSize"];
+    if(node.empty())
+    {
+        node = viewer["CameraSize"];
+    }
     if(!node.empty())
     {
         mCameraSize = node.real();
@@ -110,6 +132,10 @@ bool MapDrawer::ParseViewerParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["Viewer.CameraLineWidth"];
+    if(node.empty())
+    {
+        node = viewer["CameraLineWidth"];
+    }
     if(!node.empty())
     {
         mCameraLineWidth = node.real();

@@ -62,12 +62,24 @@ bool Viewer::ParseViewerParamFile(cv::FileStorage &fSettings)
 {
     bool b_miss_params = false;
 
-    float fps = fSettings["Camera.fps"];
+    cv::FileNode camera = fSettings["Camera"];
+    cv::FileNode viewer = fSettings["Viewer"];
+
+    cv::FileNode node = fSettings["Camera.fps"];
+    if(node.empty())
+    {
+        node = camera["fps"];
+    }
+    float fps = node;
     if(fps<1)
         fps=30;
     mT = 1e3/fps;
 
-    cv::FileNode node = fSettings["Camera.width"];
+    node = fSettings["Camera.width"];
+    if(node.empty())
+    {
+        node = camera["width"];
+    }
     if(!node.empty())
     {
         mImageWidth = node.real();
@@ -79,6 +91,10 @@ bool Viewer::ParseViewerParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["Camera.height"];
+    if(node.empty())
+    {
+        node = camera["height"];
+    }
     if(!node.empty())
     {
         mImageHeight = node.real();
@@ -90,6 +106,10 @@ bool Viewer::ParseViewerParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["Viewer.ViewpointX"];
+    if(node.empty())
+    {
+        node = viewer["ViewpointX"];
+    }
     if(!node.empty())
     {
         mViewpointX = node.real();
@@ -101,6 +121,10 @@ bool Viewer::ParseViewerParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["Viewer.ViewpointY"];
+    if(node.empty())
+    {
+        node = viewer["ViewpointY"];
+    }
     if(!node.empty())
     {
         mViewpointY = node.real();
@@ -112,6 +136,10 @@ bool Viewer::ParseViewerParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["Viewer.ViewpointZ"];
+    if(node.empty())
+    {
+        node = viewer["ViewpointZ"];
+    }
     if(!node.empty())
     {
         mViewpointZ = node.real();
@@ -123,6 +151,10 @@ bool Viewer::ParseViewerParamFile(cv::FileStorage &fSettings)
     }
 
     node = fSettings["Viewer.ViewpointF"];
+    if(node.empty())
+    {
+        node = viewer["ViewpointF"];
+    }
     if(!node.empty())
     {
         mViewpointF = node.real();
