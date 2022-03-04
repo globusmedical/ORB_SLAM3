@@ -21,6 +21,7 @@
 
 #include <opencv2/core/persistence.hpp>
 #include <string>
+#include <thread>
 #include <mutex>
 
 namespace ORB_SLAM3
@@ -39,6 +40,8 @@ public:
     // Main thread function. Draw points, keyframes, the current camera pose and the last processed
     // frame. Drawing is refreshed according to the camera fps. We use Pangolin.
     void Run();
+
+    std::thread* Start();
 
     void RequestFinish();
 

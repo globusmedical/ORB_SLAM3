@@ -61,7 +61,7 @@ void SetTh(eLevel _th)
 
 System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor,
                const bool bUseViewer, const int initFr, const string &strSequence, const string &strLoadingFile):
-    mSensor(sensor), mpViewer(nullptr), mbReset(false), mbResetActiveMap(false),
+    mSensor(sensor), mpViewer(nullptr), mptViewer(nullptr), mbReset(false), mbResetActiveMap(false),
     mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false)
 {
     // Output welcome message
@@ -148,7 +148,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     if(bUseViewer)
     {
         mpViewer = new Viewer(this, mpFrameDrawer,mpMapDrawer,mpTracker,strSettingsFile);
-        mptViewer = new thread(&Viewer::Run, mpViewer);
+        mptViewer = mpViewer->Start();
         mpTracker->SetViewer(mpViewer);
         mpLoopCloser->mpViewer = mpViewer;
         mpViewer->both = mpFrameDrawer->both;
@@ -167,6 +167,13 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     // Fix verbosity
     Verbose::SetTh(Verbose::VERBOSITY_QUIET);
 
+}
+
+System::~System()
+{
+    delete mptViewer;
+    delete mptLoopClosing;
+    delete mptLocalMapping;
 }
 
 cv::Mat System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp, const vector<IMU::Point>& vImuMeas, string filename)
@@ -402,6 +409,7 @@ void System::Shutdown()
         while (!mpViewer->isFinished()) {
             std::this_thread::sleep_for(std::chrono::microseconds(5000));
         }
+        mptViewer->join();
     }
 
     // Wait until all thread have effectively stopped
@@ -418,9 +426,11 @@ void System::Shutdown()
         }
         std::this_thread::sleep_for(std::chrono::microseconds(5000));
     }
+    mptLocalMapping->join();
+    mptLoopClosing->join();
 
     if(mpViewer)
-        pangolin::BindToContext("ORB-SLAM2: Map Viewer");
+        pangolin::DestroyWindow("ORB-SLAM3: Map Viewer");
 
 #ifdef REGISTER_TIMES
     mpTracker->PrintTimeStats();

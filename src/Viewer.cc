@@ -168,11 +168,15 @@ bool Viewer::ParseViewerParamFile(cv::FileStorage &fSettings)
     return !b_miss_params;
 }
 
-void Viewer::Run()
+std::thread* Viewer::Start()
 {
     mbFinished = false;
     mbStopped = false;
+    return new thread(&Viewer::Run, this);
+}
 
+void Viewer::Run()
+{
     pangolin::CreateWindowAndBind("ORB-SLAM3: Map Viewer",1024,768);
 
     // 3D Mouse handler requires depth testing to be enabled
@@ -222,7 +226,7 @@ void Viewer::Run()
         menuShowGraph = true;
     }
 
-    while(1)
+    while(!pangolin::ShouldQuit())
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
