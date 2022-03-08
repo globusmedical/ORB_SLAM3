@@ -35,7 +35,7 @@ namespace ORB_SLAM3
 {
 
 Viewer::Viewer(System* pSystem, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Tracking *pTracking, const string &strSettingPath):
-    both(false), mpSystem(pSystem), mpFrameDrawer(pFrameDrawer),mpMapDrawer(pMapDrawer), mpTracker(pTracking),
+    both(pFrameDrawer->both), mpSystem(pSystem), mpFrameDrawer(pFrameDrawer),mpMapDrawer(pMapDrawer), mpTracker(pTracking),
     mbFinishRequested(false), mbFinished(true), mbStopped(true), mbStopRequested(false)
 {
     cv::FileStorage fSettings(strSettingPath, cv::FileStorage::READ);
@@ -165,6 +165,17 @@ bool Viewer::ParseViewerParamFile(cv::FileStorage &fSettings)
         b_miss_params = true;
     }
 
+    node = fSettings["Viewer.Stereo"];
+    if(node.empty())
+    {
+        node = viewer["Stereo"];
+    }
+    if (!node.empty())
+    {
+        both = int(node);
+        mpFrameDrawer->both = both;
+    }
+
     return !b_miss_params;
 }
 
@@ -203,10 +214,12 @@ void Viewer::Run()
                 pangolin::ModelViewLookAt(mViewpointX,mViewpointY,mViewpointZ, 0,0,0,0.0,-1.0, 0.0)
                 );
 
+    pangolin::Handler3D h_cam(s_cam);
+
     // Add named OpenGL viewport to window and provide 3D Handler
     pangolin::View& d_cam = pangolin::CreateDisplay()
             .SetBounds(0.0, 1.0, pangolin::Attach::Pix(175), 1.0, -1024.0f/768.0f)
-            .SetHandler(new pangolin::Handler3D(s_cam));
+            .SetHandler(&h_cam);
 
     pangolin::OpenGlMatrix Twc, Twr;
     Twc.SetIdentity();
@@ -345,6 +358,18 @@ void Viewer::Run()
         if(CheckFinish())
             break;
     }
+
+    cv::destroyWindow("ORB-SLAM3: Current Frame");
+    menuReset.Detach();
+    menuLocalizationMode.Detach();
+    menuShowInertialGraph.Detach();
+    menuShowGraph.Detach();
+    menuShowKeyFrames.Detach();
+    menuShowPoints.Detach();
+    menuTopView.Detach();
+    menuCamView.Detach();
+    menuFollowCamera.Detach();
+    pangolin::DestroyWindow("ORB-SLAM3: Map Viewer");
 
     SetFinish();
 }

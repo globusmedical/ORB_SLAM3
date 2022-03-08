@@ -151,7 +151,6 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         mptViewer = mpViewer->Start();
         mpTracker->SetViewer(mpViewer);
         mpLoopCloser->mpViewer = mpViewer;
-        mpViewer->both = mpFrameDrawer->both;
     }
 
     //Set pointers between threads
@@ -428,9 +427,6 @@ void System::Shutdown()
     }
     mptLocalMapping->join();
     mptLoopClosing->join();
-
-    if(mpViewer)
-        pangolin::DestroyWindow("ORB-SLAM3: Map Viewer");
 
 #ifdef REGISTER_TIMES
     mpTracker->PrintTimeStats();

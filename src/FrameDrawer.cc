@@ -377,29 +377,32 @@ void FrameDrawer::Update(Tracking *pTracker)
     }
     else if(pTracker->mLastProcessedState==Tracking::OK)
     {
-        for(int i=0;i<N;i++)
+        for(int i=0;i<N;)
         {
-            MapPoint* pMP = pTracker->mCurrentFrame.mvpMapPoints[i];
-            if(pMP)
+            std::vector<cv::KeyPoint>& vCurrentKeys = i == 0 ? mvCurrentKeys : mvCurrentKeysRight;
+            int Nside = vCurrentKeys.size();
+            for(int j=0;j<Nside;j++,i++)
             {
-                if(!pTracker->mCurrentFrame.mvbOutlier[i])
+                MapPoint* pMP = pTracker->mCurrentFrame.mvpMapPoints[j];
+                if(pMP)
                 {
-                    if(pMP->Observations()>0)
-                        mvbMap[i]=true;
+                    if(!pTracker->mCurrentFrame.mvbOutlier[j])
+                    {
+                        if(pMP->Observations()>0)
+                            mvbMap[i]=true;
+                        else
+                            mvbVO[i]=true;
+
+                        mmMatchedInImage[pMP->mnId] = vCurrentKeys[j].pt;
+                    }
                     else
-                        mvbVO[i]=true;
-
-                    mmMatchedInImage[pMP->mnId] = mvCurrentKeys[i].pt;
-
-                }
-                else
-                {
-                    mvpOutlierMPs.push_back(pMP);
-                    mvOutlierKeys.push_back(mvCurrentKeys[i]);
+                    {
+                        mvpOutlierMPs.push_back(pMP);
+                        mvOutlierKeys.push_back(vCurrentKeys[j]);
+                    }
                 }
             }
         }
-
     }
     mState=static_cast<int>(pTracker->mLastProcessedState);
 }
