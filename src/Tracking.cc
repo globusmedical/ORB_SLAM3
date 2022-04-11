@@ -4120,22 +4120,25 @@ void Tracking::UpdateFrameIMU(const float s, const IMU::Bias &b, KeyFrame* pCurr
     }
 
 
-    if(mLastFrame.mnId == mLastFrame.mpLastKeyFrame->mnFrameId)
+    if(mLastFrame.mpLastKeyFrame)
     {
-        mLastFrame.SetImuPoseVelocity(mLastFrame.mpLastKeyFrame->GetImuRotation(),
-                                      mLastFrame.mpLastKeyFrame->GetImuPosition(),
-                                      mLastFrame.mpLastKeyFrame->GetVelocity());
-    }
-    else
-    {
-        twb1 = mLastFrame.mpLastKeyFrame->GetImuPosition();
-        Rwb1 = mLastFrame.mpLastKeyFrame->GetImuRotation();
-        Vwb1 = mLastFrame.mpLastKeyFrame->GetVelocity();
-        t12 = mLastFrame.mpImuPreintegrated->dT;
+        if(mLastFrame.mnId == mLastFrame.mpLastKeyFrame->mnFrameId)
+        {
+            mLastFrame.SetImuPoseVelocity(mLastFrame.mpLastKeyFrame->GetImuRotation(),
+                                          mLastFrame.mpLastKeyFrame->GetImuPosition(),
+                                          mLastFrame.mpLastKeyFrame->GetVelocity());
+        }
+        else
+        {
+            twb1 = mLastFrame.mpLastKeyFrame->GetImuPosition();
+            Rwb1 = mLastFrame.mpLastKeyFrame->GetImuRotation();
+            Vwb1 = mLastFrame.mpLastKeyFrame->GetVelocity();
+            t12 = mLastFrame.mpImuPreintegrated->dT;
 
-        mLastFrame.SetImuPoseVelocity(Rwb1*mLastFrame.mpImuPreintegrated->GetUpdatedDeltaRotation(),
-                                      twb1 + Vwb1*t12 + 0.5f*t12*t12*Gz+ Rwb1*mLastFrame.mpImuPreintegrated->GetUpdatedDeltaPosition(),
-                                      Vwb1 + Gz*t12 + Rwb1*mLastFrame.mpImuPreintegrated->GetUpdatedDeltaVelocity());
+            mLastFrame.SetImuPoseVelocity(Rwb1*mLastFrame.mpImuPreintegrated->GetUpdatedDeltaRotation(),
+                                          twb1 + Vwb1*t12 + 0.5f*t12*t12*Gz+ Rwb1*mLastFrame.mpImuPreintegrated->GetUpdatedDeltaPosition(),
+                                          Vwb1 + Gz*t12 + Rwb1*mLastFrame.mpImuPreintegrated->GetUpdatedDeltaVelocity());
+        }
     }
 
     if (mCurrentFrame.mpImuPreintegrated)

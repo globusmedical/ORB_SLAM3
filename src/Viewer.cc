@@ -287,7 +287,7 @@ void Viewer::Run()
             s_cam.Follow(Twc);
         }
 
-        if(menuTopView && mpMapDrawer->mpAtlas->isImuInitialized())
+        if(menuTopView)
         {
             menuTopView = false;
             bCameraView = false;
