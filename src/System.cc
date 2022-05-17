@@ -386,6 +386,36 @@ bool System::MapChanged()
         return false;
 }
 
+int System::CountMaps()
+{
+    return mpAtlas->CountMaps();
+}
+
+std::vector<Map*> System::GetAllMaps()
+{
+    return mpAtlas->GetAllMaps();
+}
+
+int System::KeyFramesInMap()
+{
+    return mpAtlas->KeyFramesInMap();
+}
+
+std::vector<KeyFrame*> System::GetAllKeyFrames()
+{
+    return mpAtlas->GetAllKeyFrames();
+}
+
+int System::MapPointsInMap()
+{
+    return mpAtlas->MapPointsInMap();
+}
+
+std::vector<MapPoint*> System::GetAllMapPoints()
+{
+    return mpAtlas->GetAllMapPoints();
+}
+
 void System::Reset()
 {
     unique_lock<mutex> lock(mMutexReset);
