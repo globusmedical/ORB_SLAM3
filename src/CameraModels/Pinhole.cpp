@@ -20,6 +20,8 @@
 
 #include "TwoViewReconstruction.h"
 
+#include <opencv2/core.hpp>
+
 namespace ORB_SLAM3
 {
 
