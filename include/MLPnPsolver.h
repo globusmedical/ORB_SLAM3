@@ -1,7 +1,7 @@
 /**
 * This file is part of ORB-SLAM3
 *
-* Copyright (C) 2017-2020 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
+* Copyright (C) 2017-2021 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
 * Copyright (C) 2014-2016 Raúl Mur-Artal, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
 *
 * ORB-SLAM3 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
@@ -65,12 +65,18 @@ class MapPoint;
 
 class MLPnPsolver {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     MLPnPsolver(const Frame &F, const std::vector<MapPoint*> &vpMapPointMatches);
 
     ~MLPnPsolver();
 
     void SetRansacParameters(double probability = 0.99, int minInliers = 8, int maxIterations = 300, int minSet = 6, float epsilon = 0.4,
                              float th2 = 5.991);
+
+    //Find method is necessary?
+
+    bool iterate(int nIterations, bool &bNoMore, std::vector<bool> &vbInliers, int &nInliers, Eigen::Matrix4f &Tout);
 
     cv::Mat iterate(int nIterations, bool &bNoMore, std::vector<bool> &vbInliers, int &nInliers);
 
@@ -207,7 +213,7 @@ private:
     // Current Estimation
     double mRi[3][3];
     double mti[3];
-    cv::Mat mTcwi;
+    Eigen::Matrix4f mTcwi;
     std::vector<bool> mvbInliersi;
     int mnInliersi;
 
@@ -215,10 +221,10 @@ private:
     int mnIterations;
     std::vector<bool> mvbBestInliers;
     int mnBestInliers;
-    cv::Mat mBestTcw;
+    Eigen::Matrix4f mBestTcw;
 
     // Refined
-    cv::Mat mRefinedTcw;
+    Eigen::Matrix4f mRefinedTcw;
     std::vector<bool> mvbRefinedInliers;
     int mnRefinedInliers;
 

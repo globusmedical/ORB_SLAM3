@@ -1,7 +1,7 @@
 /**
 * This file is part of ORB-SLAM3
 *
-* Copyright (C) 2017-2020 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
+* Copyright (C) 2017-2021 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
 * Copyright (C) 2014-2016 Raúl Mur-Artal, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
 *
 * ORB-SLAM3 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
@@ -19,13 +19,15 @@
 #ifndef ORB_SLAM3_SYSTEM_H
 #define ORB_SLAM3_SYSTEM_H
 
-#include "Config.h"
 #include "ImuTypes.h"
 #include "ORBVocabulary.h"
+#include "Thirdparty/Sophus/sophus/se3.hpp"
 
-#include <mutex>
+#include <Eigen/Core>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
+
+#include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
@@ -42,6 +44,7 @@ class LoopClosing;
 class Map;
 class MapDrawer;
 class MapPoint;
+class Settings;
 class Tracking;
 class Viewer;
 
@@ -78,36 +81,37 @@ public:
         STEREO=1,
         RGBD=2,
         IMU_MONOCULAR=3,
-        IMU_STEREO=4
+        IMU_STEREO=4,
+        IMU_RGBD=5,
     };
 
     // File type
-    enum eFileType{
+    enum FileType{
         TEXT_FILE=0,
         BINARY_FILE=1,
     };
 
 public:
-
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     // Initialize the SLAM system. It launches the Local Mapping, Loop Closing and Viewer threads.
-    System(const std::string &strVocFile, const std::string &strSettingsFile, const eSensor sensor, const bool bUseViewer = true, const int initFr = 0, const std::string &strSequence = std::string(), const std::string &strLoadingFile = std::string());
+    System(const std::string &strVocFile, const std::string &strSettingsFile, const eSensor sensor, const bool bUseViewer = true, const int initFr = 0, const std::string &strSequence = "");
     ~System();
 
     // Proccess the given stereo frame. Images must be synchronized and rectified.
     // Input images: RGB (CV_8UC3) or grayscale (CV_8U). RGB is converted to grayscale.
     // Returns the camera pose (empty if tracking fails).
-    cv::Mat TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp, const std::vector<IMU::Point>& vImuMeas = std::vector<IMU::Point>(), std::string filename="");
+    Sophus::SE3f TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp, const std::vector<IMU::Point>& vImuMeas = std::vector<IMU::Point>(), std::string filename="");
 
     // Process the given rgbd frame. Depthmap must be registered to the RGB frame.
     // Input image: RGB (CV_8UC3) or grayscale (CV_8U). RGB is converted to grayscale.
     // Input depthmap: Float (CV_32F).
     // Returns the camera pose (empty if tracking fails).
-    cv::Mat TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const double &timestamp, std::string filename="");
+    Sophus::SE3f TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const double &timestamp, const std::vector<IMU::Point>& vImuMeas = std::vector<IMU::Point>(), std::string filename="");
 
     // Proccess the given monocular frame and optionally imu data
     // Input images: RGB (CV_8UC3) or grayscale (CV_8U). RGB is converted to grayscale.
     // Returns the camera pose (empty if tracking fails).
-    cv::Mat TrackMonocular(const cv::Mat &im, const double &timestamp, const std::vector<IMU::Point>& vImuMeas = std::vector<IMU::Point>(), std::string filename="");
+    Sophus::SE3f TrackMonocular(const cv::Mat &im, const double &timestamp, const std::vector<IMU::Point>& vImuMeas = std::vector<IMU::Point>(), std::string filename="");
 
 
     // This stops local mapping thread (map building) and performs only camera tracking.
@@ -135,6 +139,7 @@ public:
     // It waits until all threads have finished.
     // This function must be called before saving the trajectory.
     void Shutdown();
+    bool isShutDown();
 
     // Save camera trajectory in the TUM RGB-D dataset format.
     // Only for stereo and RGB-D. This method does not work for monocular.
@@ -150,6 +155,12 @@ public:
 
     void SaveTrajectoryEuRoC(const std::string &filename);
     void SaveKeyFrameTrajectoryEuRoC(const std::string &filename);
+
+    void SaveTrajectoryEuRoC(const std::string &filename, Map* pMap);
+    void SaveKeyFrameTrajectoryEuRoC(const std::string &filename, Map* pMap);
+
+    // Save data used for initialization debug
+    void SaveDebugData(const int &iniIdx);
 
     // Save camera trajectory in the KITTI dataset format.
     // Only for stereo and RGB-D. This method does not work for monocular.
@@ -174,13 +185,20 @@ public:
 
     void ChangeDataset();
 
+    float GetImageScale();
+
 #ifdef REGISTER_TIMES
     void InsertRectTime(double& time);
-
+    void InsertResizeTime(double& time);
     void InsertTrackTime(double& time);
 #endif
 
 private:
+
+    void SaveAtlas(int type);
+    bool LoadAtlas(int type);
+
+    std::string CalculateCheckSum(std::string filename, int type);
 
     // Input sensor
     eSensor mSensor;
@@ -191,7 +209,8 @@ private:
     // KeyFrame database for place recognition (relocalization and loop detection).
     KeyFrameDatabase* mpKeyFrameDatabase;
 
-    // Atlas structure that stores the pointers to all KeyFrames and MapPoints.
+    // Map structure that stores the pointers to all KeyFrames and MapPoints.
+    //Map* mpMap;
     Atlas* mpAtlas;
 
     // Tracker. It receives a frame and computes the associated camera pose.
@@ -228,11 +247,22 @@ private:
     bool mbActivateLocalizationMode;
     bool mbDeactivateLocalizationMode;
 
+    // Shutdown flag
+    bool mbShutDown;
+
     // Tracking state
     int mTrackingState;
     std::vector<MapPoint*> mTrackedMapPoints;
     std::vector<cv::KeyPoint> mTrackedKeyPointsUn;
     std::mutex mMutexState;
+
+    //
+    std::string mStrLoadAtlasFromFile;
+    std::string mStrSaveAtlasToFile;
+
+    std::string mStrVocabularyFilePath;
+
+    Settings* settings_;
 };
 
 } // namespace ORB_SLAM3

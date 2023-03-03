@@ -1,7 +1,7 @@
 /**
 * This file is part of ORB-SLAM3
 *
-* Copyright (C) 2017-2020 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
+* Copyright (C) 2017-2021 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
 * Copyright (C) 2014-2016 Raúl Mur-Artal, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
 *
 * ORB-SLAM3 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
@@ -25,6 +25,10 @@
 #include "ORBVocabulary.h"
 
 #include <fstream>
+#include <list>
+#include <mutex>
+#include <string>
+#include <vector>
 
 namespace ORB_SLAM3
 {
@@ -36,7 +40,9 @@ class KeyFrame;
 class KeyFrameDatabase;
 class LocalMapping;
 class LoopClosing;
+class Map;
 class MapDrawer;
+class Settings;
 class System;
 class Viewer;
 
@@ -44,8 +50,9 @@ class Tracking
 {  
 
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     Tracking(System* pSys, ORBVocabulary* pVoc, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Atlas* pAtlas,
-             KeyFrameDatabase* pKFDB, const std::string &strSettingPath, const int sensor, const std::string &_nameSeq=std::string());
+             KeyFrameDatabase* pKFDB, const std::string &strSettingPath, const int sensor, Settings* settings, const std::string &_nameSeq="");
 
     ~Tracking();
 
@@ -55,10 +62,9 @@ public:
     bool ParseIMUParamFile(cv::FileStorage &fSettings);
 
     // Preprocess the input and call Track(). Extract features and performs stereo matching.
-    cv::Mat GrabImageStereo(const cv::Mat &imRectLeft,const cv::Mat &imRectRight, const double &timestamp, std::string filename);
-    cv::Mat GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const double &timestamp, std::string filename);
-    cv::Mat GrabImageMonocular(const cv::Mat &im, const double &timestamp, std::string filename);
-    // cv::Mat GrabImageImuMonocular(const cv::Mat &im, const double &timestamp);
+    Sophus::SE3f GrabImageStereo(const cv::Mat &imRectLeft,const cv::Mat &imRectRight, const double &timestamp, std::string filename);
+    Sophus::SE3f GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const double &timestamp, std::string filename);
+    Sophus::SE3f GrabImageMonocular(const cv::Mat &im, const double &timestamp, std::string filename);
 
     void GrabImuData(const IMU::Point &imuMeasurement);
 
@@ -66,6 +72,7 @@ public:
     void SetLoopClosing(LoopClosing* pLoopClosing);
     void SetViewer(Viewer* pViewer);
     void SetStepByStep(bool bSet);
+    bool GetStepByStep();
 
     // Load new settings
     // The focal lenght should be similar or scale prediction will fail when projecting points
@@ -81,12 +88,26 @@ public:
     }
 
     void CreateMapInAtlas();
-    std::mutex mMutexTracks;
+    //std::mutex mMutexTracks;
 
     //--
     void NewDataset();
     int GetNumberDataset();
     int GetMatchesInliers();
+
+    //DEBUG
+    void SaveSubTrajectory(std::string strNameFile_frames, std::string strNameFile_kf, std::string strFolder="");
+    void SaveSubTrajectory(std::string strNameFile_frames, std::string strNameFile_kf, Map* pMap);
+
+    float GetImageScale();
+
+#ifdef REGISTER_LOOP
+    void RequestStop();
+    bool isStopped();
+    void Release();
+    bool stopRequested();
+#endif
+
 public:
 
     // Tracking states
@@ -121,7 +142,7 @@ public:
 
     // Lists used to recover the full camera trajectory at the end of the execution.
     // Basically we store the reference keyframe for each frame and its relative transformation
-    std::list<cv::Mat> mlRelativeFramePoses;
+    std::list<Sophus::SE3f> mlRelativeFramePoses;
     std::list<KeyFrame*> mlpReferences;
     std::list<double> mlFrameTimes;
     std::list<bool> mlbLost;
@@ -141,6 +162,7 @@ public:
     double t0; // time-stamp of first read frame
     double t0vis; // time-stamp of first inserted keyframe
     double t0IMU; // time-stamp of IMU initialization
+    bool mFastInit = false;
 
 
     std::vector<MapPoint*> GetLocalMapMPS();
@@ -153,6 +175,7 @@ public:
     void PrintTimeStats();
 
     std::vector<double> vdRectStereo_ms;
+    std::vector<double> vdResizeImage_ms;
     std::vector<double> vdORBExtract_ms;
     std::vector<double> vdStereoMatch_ms;
     std::vector<double> vdIMUInteg_ms;
@@ -160,14 +183,7 @@ public:
     std::vector<double> vdLMTrack_ms;
     std::vector<double> vdNewKF_ms;
     std::vector<double> vdTrackTotal_ms;
-
-    std::vector<double> vdUpdatedLM_ms;
-    std::vector<double> vdSearchLP_ms;
-    std::vector<double> vdPoseOpt_ms;
 #endif
-
-    std::vector<int> vnKeyFramesLM;
-    std::vector<int> vnMapPointsLM;
 
 protected:
 
@@ -179,8 +195,7 @@ protected:
 
     // Map initialization for monocular
     void MonocularInitialization();
-    void CreateNewMapPoints();
-    cv::Mat ComputeF12(KeyFrame *&pKF1, KeyFrame *&pKF2);
+    //void CreateNewMapPoints();
     void CreateInitialMapMonocular();
 
     void CheckReplacedInLastFrame();
@@ -196,7 +211,6 @@ protected:
     void UpdateLocalKeyFrames();
 
     bool TrackLocalMap();
-    bool TrackLocalMap_old();
     void SearchLocalPoints();
 
     bool NeedNewKeyFrame();
@@ -206,9 +220,7 @@ protected:
     void PreintegrateIMU();
 
     // Reset IMU biases and compute frame velocity
-    void ComputeGyroBias(const std::vector<Frame*> &vpFs, float &bwx,  float &bwy, float &bwz);
-    void ComputeVelocitiesAccBias(const std::vector<Frame*> &vpFs, float &bax,  float &bay, float &baz);
-
+    void ResetFrameIMU();
 
     bool mbMapUpdated;
 
@@ -247,7 +259,7 @@ protected:
     KeyFrameDatabase* mpKeyFrameDB;
 
     // Initalization (only for monocular)
-    Initializer* mpInitializer;
+    bool mbReadyToInitializate;
     bool mbSetInit;
 
     //Local Map
@@ -269,8 +281,14 @@ protected:
 
     //Calibration matrix
     cv::Mat mK;
+    Eigen::Matrix3f mK_;
     cv::Mat mDistCoef;
     float mbf;
+    float mImageScale;
+
+    float mImuFreq;
+    double mImuPer;
+    bool mInsertKFsLost;
 
     //New KeyFrame rules (according to fps)
     int mMinFrames;
@@ -296,7 +314,6 @@ protected:
     unsigned int mnLastRelocFrameId;
     double mTimeStampLost;
     double time_recently_lost;
-    double time_recently_lost_visual;
 
     unsigned int mnFirstFrameId;
     unsigned int mnInitialFrameId;
@@ -304,9 +321,9 @@ protected:
 
     bool mbCreatedMap;
 
-
     //Motion Model
-    cv::Mat mVelocity;
+    bool mbVelocity{false};
+    Sophus::SE3f mVelocity;
 
     //Color order (true RGB, false BGR, ignored if grayscale)
     bool mbRGB;
@@ -329,7 +346,18 @@ protected:
 
     int initID, lastID;
 
-    cv::Mat mTlr;
+    Sophus::SE3f mTlr;
+
+    void newParameterLoader(Settings* settings);
+
+#ifdef REGISTER_LOOP
+    bool Stop();
+
+    bool mbStopped;
+    bool mbStopRequested;
+    bool mbNotStop;
+    std::mutex mMutexStop;
+#endif
 
 public:
     cv::Mat mImRight;

@@ -1,7 +1,7 @@
 /**
 * This file is part of ORB-SLAM3
 *
-* Copyright (C) 2017-2020 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
+* Copyright (C) 2017-2021 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
 * Copyright (C) 2014-2016 Raúl Mur-Artal, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
 *
 * ORB-SLAM3 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
@@ -22,6 +22,7 @@
 #include <Eigen/Dense>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/matx.hpp>
+
 #include <list>
 #include <mutex>
 #include <fstream>
@@ -41,7 +42,8 @@ class Tracking;
 class LocalMapping
 {
 public:
-    LocalMapping(System* pSys, Atlas* pAtlas, const float bMonocular, bool bInertial, const std::string &_strSeqName=std::string());
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    LocalMapping(System* pSys, Atlas* pAtlas, const float bMonocular, bool bInertial, const std::string &_strSeqName="");
 
     void SetLoopCloser(LoopClosing* pLoopCloser);
 
@@ -88,12 +90,17 @@ public:
     double mScale;
     double mInitTime;
     double mCostTime;
-    bool mbNewInit;
+
     unsigned int mInitSect;
     unsigned int mIdxInit;
     unsigned int mnKFs;
     double mFirstTs;
     int mnMatchesInliers;
+
+    // For debugging (erase in normal mode)
+    int mInitFr;
+    int mIdxIteration;
+    std::string strSequence;
 
     bool mbNotBA1;
     bool mbNotBA2;
@@ -132,12 +139,6 @@ protected:
     void MapPointCulling();
     void SearchInNeighbors();
     void KeyFrameCulling();
-
-    cv::Mat ComputeF12(KeyFrame* &pKF1, KeyFrame* &pKF2);
-    cv::Matx33f ComputeF12_(KeyFrame* &pKF1, KeyFrame* &pKF2);
-
-    cv::Mat SkewSymmetricMatrix(const cv::Mat &v);
-    cv::Matx33f SkewSymmetricMatrix_(const cv::Matx31f &v);
 
     System *mpSystem;
 
@@ -194,6 +195,7 @@ protected:
 
     //DEBUG
     std::ofstream f_lm;
+
 };
 
 } // namespace ORB_SLAM3

@@ -1,7 +1,7 @@
 /**
 * This file is part of ORB-SLAM3
 *
-* Copyright (C) 2017-2020 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
+* Copyright (C) 2017-2021 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
 * Copyright (C) 2014-2016 Raúl Mur-Artal, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
 *
 * ORB-SLAM3 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
@@ -19,10 +19,13 @@
 #ifndef ORB_SLAM3_MAPDRAWER_H
 #define ORB_SLAM3_MAPDRAWER_H
 
-#include <mutex>
-#include <opencv2/core/mat.hpp>
+#include "Thirdparty/Sophus/sophus/se3.hpp"
+
+#include <Eigen/Core>
 #include <opencv2/core/persistence.hpp>
 #include <pangolin/gl/opengl_render_state.h>
+
+#include <mutex>
 #include <string>
 
 namespace ORB_SLAM3
@@ -30,21 +33,24 @@ namespace ORB_SLAM3
 
 class Atlas;
 class KeyFrame;
+class Settings;
 
 class MapDrawer
 {
 public:
-    MapDrawer(Atlas* pAtlas, const std::string &strSettingPath);
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    MapDrawer(Atlas* pAtlas, const std::string &strSettingPath, Settings* settings);
+
+    void newParameterLoader(Settings* settings);
 
     Atlas* mpAtlas;
 
     void DrawMapPoints();
-    void DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph, const bool bDrawInertialGraph);
+    void DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph, const bool bDrawInertialGraph, const bool bDrawOptLba);
     void DrawCurrentCamera(pangolin::OpenGlMatrix &Twc);
-    void SetCurrentCameraPose(const cv::Mat &Tcw);
+    void SetCurrentCameraPose(const Sophus::SE3f &Tcw);
     void SetReferenceKeyFrame(KeyFrame *pKF);
     void GetCurrentOpenGLCameraMatrix(pangolin::OpenGlMatrix &M, pangolin::OpenGlMatrix &MOw);
-    void GetCurrentOpenGLCameraMatrix(pangolin::OpenGlMatrix &M, pangolin::OpenGlMatrix &MOw, pangolin::OpenGlMatrix &MTwwp);
 
 private:
 
@@ -57,7 +63,7 @@ private:
     float mCameraSize;
     float mCameraLineWidth;
 
-    cv::Mat mCameraPose;
+    Sophus::SE3f mCameraPose;
 
     std::mutex mMutexCamera;
 
@@ -67,6 +73,7 @@ private:
                                 {0.6f, 0.0f, 1.0f},
                                 {1.0f, 1.0f, 0.0f},
                                 {0.0f, 1.0f, 1.0f}};
+
 };
 
 } // namespace ORB_SLAM3

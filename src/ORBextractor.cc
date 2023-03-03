@@ -1,7 +1,7 @@
 /**
 * This file is part of ORB-SLAM3
 *
-* Copyright (C) 2017-2020 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
+* Copyright (C) 2017-2021 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
 * Copyright (C) 2014-2016 Raúl Mur-Artal, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
 *
 * ORB-SLAM3 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
@@ -15,6 +15,7 @@
 * You should have received a copy of the GNU General Public License along with ORB-SLAM3.
 * If not, see <http://www.gnu.org/licenses/>.
 */
+
 /**
 * Software License Agreement (BSD License)
 *
@@ -527,6 +528,23 @@ void ExtractorNode::DivideNode(ExtractorNode &n1, ExtractorNode &n2, ExtractorNo
 
 }
 
+static bool compareNodes(pair<int,ExtractorNode*>& e1, pair<int,ExtractorNode*>& e2){
+    if(e1.first < e2.first){
+        return true;
+    }
+    else if(e1.first > e2.first){
+        return false;
+    }
+    else{
+        if(e1.second->UL.x < e2.second->UL.x){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+}
+
 vector<cv::KeyPoint> ORBextractor::DistributeOctTree(const vector<cv::KeyPoint>& vToDistributeKeys, const int &minX,
                                                      const int &maxX, const int &minY, const int &maxY, const int &N, const int &level)
 {
@@ -725,6 +743,68 @@ vector<cv::KeyPoint> ORBextractor::DistributeOctTree(const vector<cv::KeyPoint>&
                 if((int)lNodes.size()>=N || (int)lNodes.size()==prevSize)
                     bFinish = true;
 
+                while(!bFinish)
+                {
+
+                    prevSize = lNodes.size();
+
+                    vector<pair<int,ExtractorNode*> > vPrevSizeAndPointerToNode = vSizeAndPointerToNode;
+                    vSizeAndPointerToNode.clear();
+
+                    sort(vPrevSizeAndPointerToNode.begin(),vPrevSizeAndPointerToNode.end(),compareNodes);
+                    for(int j=vPrevSizeAndPointerToNode.size()-1;j>=0;j--)
+                    {
+                        ExtractorNode n1,n2,n3,n4;
+                        vPrevSizeAndPointerToNode[j].second->DivideNode(n1,n2,n3,n4);
+
+                        // Add childs if they contain points
+                        if(n1.vKeys.size()>0)
+                        {
+                            lNodes.push_front(n1);
+                            if(n1.vKeys.size()>1)
+                            {
+                                vSizeAndPointerToNode.push_back(make_pair(n1.vKeys.size(),&lNodes.front()));
+                                lNodes.front().lit = lNodes.begin();
+                            }
+                        }
+                        if(n2.vKeys.size()>0)
+                        {
+                            lNodes.push_front(n2);
+                            if(n2.vKeys.size()>1)
+                            {
+                                vSizeAndPointerToNode.push_back(make_pair(n2.vKeys.size(),&lNodes.front()));
+                                lNodes.front().lit = lNodes.begin();
+                            }
+                        }
+                        if(n3.vKeys.size()>0)
+                        {
+                            lNodes.push_front(n3);
+                            if(n3.vKeys.size()>1)
+                            {
+                                vSizeAndPointerToNode.push_back(make_pair(n3.vKeys.size(),&lNodes.front()));
+                                lNodes.front().lit = lNodes.begin();
+                            }
+                        }
+                        if(n4.vKeys.size()>0)
+                        {
+                            lNodes.push_front(n4);
+                            if(n4.vKeys.size()>1)
+                            {
+                                vSizeAndPointerToNode.push_back(make_pair(n4.vKeys.size(),&lNodes.front()));
+                                lNodes.front().lit = lNodes.begin();
+                            }
+                        }
+
+                        lNodes.erase(vPrevSizeAndPointerToNode[j].second->lit);
+
+                        if((int)lNodes.size()>=N)
+                            break;
+                    }
+
+                    if((int)lNodes.size()>=N || (int)lNodes.size()==prevSize)
+                        bFinish = true;
+
+                }
             }
         }
     }

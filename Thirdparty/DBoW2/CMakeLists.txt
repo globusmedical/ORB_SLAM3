@@ -2,22 +2,23 @@ cmake_minimum_required(VERSION 2.8)
 set(DBOW2_TARGET "DBoW2")
 project(${DBOW2_TARGET})
 
-set(DBOW2_LIB_TYPE SHARED)
-if(WIN32)
-  set(DBOW2_LIB_TYPE STATIC)
-endif(WIN32)
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3 -march=native ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall  -O3 -march=native")
 
 
 # Compiler options
-# Compiler specific options for gcc
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -march=native")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -march=native")
-endif()
-# Compiler specific options for MSVC
-if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+if(MSVC)
+  # Compiler specific options for MSVC
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3")
+else()
+  # Compiler specific options for gcc
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -march=native")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -march=native")
 endif()
 
 
@@ -42,26 +43,18 @@ set(SRCS_DUTILS
   DUtils/Random.cpp
   DUtils/Timestamp.cpp)
 
-add_library(${DBOW2_TARGET} ${DBOW2_LIB_TYPE} ${SRCS_DBOW2} ${SRCS_DUTILS})
+set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+add_library(DBoW2 SHARED ${SRCS_DBOW2} ${SRCS_DUTILS})
 
-
-# Dependencies
-
-# add OpenCV
 find_package(OpenCV 4 QUIET)
 if(NOT OpenCV_FOUND)
-  find_package(OpenCV 3 QUIET)
-  if(NOT OpenCV_FOUND)
-    find_package(OpenCV 2.4.3 QUIET)
-    if(NOT OpenCV_FOUND)
-      message(FATAL_ERROR "OpenCV > 2.4.3 not found.")
-    endif()
-  endif()
+   find_package(OpenCV 3.0 QUIET)
+   if(NOT OpenCV_FOUND)
+      message(FATAL_ERROR "OpenCV > 3.0 not found.")
+   endif()
 endif()
-MESSAGE(STATUS "OpenCV VERSION: ${OpenCV_VERSION}")
-#include_directories(${OpenCV_INCLUDE_DIRS}) # not needed in modern cmake
+include_directories(${OpenCV_INCLUDE_DIRS})
 target_link_libraries(${DBOW2_TARGET} PUBLIC ${OpenCV_LIBS})
 
-# add Boost
 find_package(Boost REQUIRED COMPONENTS serialization)
-target_link_libraries(${DBOW2_TARGET} PUBLIC Boost::boost Boost::serialization)
+target_link_libraries(${DBOW2_TARGET} PRIVATE Boost::serialization)

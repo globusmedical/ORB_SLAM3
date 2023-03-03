@@ -1,7 +1,7 @@
 /**
 * This file is part of ORB-SLAM3
 *
-* Copyright (C) 2017-2020 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
+* Copyright (C) 2017-2021 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
 * Copyright (C) 2014-2016 Raúl Mur-Artal, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
 *
 * ORB-SLAM3 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
@@ -15,6 +15,7 @@
 * You should have received a copy of the GNU General Public License along with ORB-SLAM3.
 * If not, see <http://www.gnu.org/licenses/>.
 */
+
 /******************************************************************************
 * Author:   Steffen Urban                                              *
 * Contact:  urbste@gmail.com                                          *
@@ -48,6 +49,7 @@
 #include "MLPnPsolver.h"
 
 #include "CameraModels/GeometricCamera.h"
+#include "Converter.h"
 #include "Frame.h"
 #include "MapPoint.h"
 #include "Thirdparty/DBoW2/DUtils/Random.h"
@@ -86,8 +88,8 @@ MLPnPsolver::MLPnPsolver(const Frame &F, const vector<MapPoint *> &vpMapPointMat
                 mvBearingVecs.push_back(br);
 
                 //3D coordinates
-                cv::Mat cv_pos = pMP -> GetWorldPos();
-                point_t pos(cv_pos.at<float>(0),cv_pos.at<float>(1),cv_pos.at<float>(2));
+                Eigen::Matrix<float,3,1> posEig = pMP -> GetWorldPos();
+                point_t pos(posEig(0),posEig(1),posEig(2));
                 mvP3Dw.push_back(pos);
 
                 mvKeyPointIndices.push_back(i);
@@ -102,161 +104,167 @@ MLPnPsolver::MLPnPsolver(const Frame &F, const vector<MapPoint *> &vpMapPointMat
 }
 
 //RANSAC methods
-        cv::Mat MLPnPsolver::iterate(int nIterations, bool &bNoMore, vector<bool> &vbInliers, int &nInliers){
-                bNoMore = false;
-            vbInliers.clear();
-            nInliers=0;
+bool MLPnPsolver::iterate(int nIterations, bool &bNoMore, vector<bool> &vbInliers, int &nInliers, Eigen::Matrix4f &Tout){
+    Tout.setIdentity();
+    bNoMore = false;
+    vbInliers.clear();
+    nInliers=0;
 
-            if(N<mRansacMinInliers)
-            {
-                bNoMore = true;
-                return cv::Mat();
-            }
+    if(N<mRansacMinInliers)
+    {
+        bNoMore = true;
+        return false;
+    }
 
-            vector<size_t> vAvailableIndices;
+    vector<size_t> vAvailableIndices;
 
-            int nCurrentIterations = 0;
-            while(mnIterations<mRansacMaxIts || nCurrentIterations<nIterations)
-            {
-                nCurrentIterations++;
-                mnIterations++;
+    int nCurrentIterations = 0;
+    while(mnIterations<mRansacMaxIts || nCurrentIterations<nIterations)
+    {
+        nCurrentIterations++;
+        mnIterations++;
 
-                vAvailableIndices = mvAllIndices;
+        vAvailableIndices = mvAllIndices;
 
-        //Bearing vectors and 3D points used for this ransac iteration
-        bearingVectors_t bearingVecs(mRansacMinSet);
-        points_t p3DS(mRansacMinSet);
-        vector<int> indexes(mRansacMinSet);
+    //Bearing vectors and 3D points used for this ransac iteration
+    bearingVectors_t bearingVecs(mRansacMinSet);
+    points_t p3DS(mRansacMinSet);
+    vector<int> indexes(mRansacMinSet);
 
-                // Get min set of points
-                for(short i = 0; i < mRansacMinSet; ++i)
-                {
-                    int randi = DUtils::Random::RandomInt(0, vAvailableIndices.size()-1);
+        // Get min set of points
+        for(short i = 0; i < mRansacMinSet; ++i)
+        {
+            int randi = DUtils::Random::RandomInt(0, vAvailableIndices.size()-1);
 
-                    int idx = vAvailableIndices[randi];
+            int idx = vAvailableIndices[randi];
 
-            bearingVecs[i] = mvBearingVecs[idx];
-            p3DS[i] = mvP3Dw[idx];
-            indexes[i] = i;
+        bearingVecs[i] = mvBearingVecs[idx];
+        p3DS[i] = mvP3Dw[idx];
+        indexes[i] = i;
 
-                    vAvailableIndices[randi] = vAvailableIndices.back();
-                    vAvailableIndices.pop_back();
-                }
-
-        //By the moment, we are using MLPnP without covariance info
-        cov3_mats_t covs(1);
-
-        //Result
-        transformation_t result;
-
-                // Compute camera pose
-        computePose(bearingVecs,p3DS,covs,indexes,result);
-
-        //Save result
-        mRi[0][0] = result(0,0);
-        mRi[0][1] = result(0,1);
-        mRi[0][2] = result(0,2);
-
-        mRi[1][0] = result(1,0);
-        mRi[1][1] = result(1,1);
-        mRi[1][2] = result(1,2);
-
-        mRi[2][0] = result(2,0);
-        mRi[2][1] = result(2,1);
-        mRi[2][2] = result(2,2);
-
-        mti[0] = result(0,3);mti[1] = result(1,3);mti[2] = result(2,3);
-
-                // Check inliers
-                CheckInliers();
-
-                if(mnInliersi>=mRansacMinInliers)
-                {
-                    // If it is the best solution so far, save it
-                    if(mnInliersi>mnBestInliers)
-                    {
-                        mvbBestInliers = mvbInliersi;
-                        mnBestInliers = mnInliersi;
-
-                        cv::Mat Rcw(3,3,CV_64F,mRi);
-                        cv::Mat tcw(3,1,CV_64F,mti);
-                        Rcw.convertTo(Rcw,CV_32F);
-                        tcw.convertTo(tcw,CV_32F);
-                        mBestTcw = cv::Mat::eye(4,4,CV_32F);
-                        Rcw.copyTo(mBestTcw.rowRange(0,3).colRange(0,3));
-                        tcw.copyTo(mBestTcw.rowRange(0,3).col(3));
-                    }
-
-                    if(Refine())
-                    {
-                        nInliers = mnRefinedInliers;
-                        vbInliers = vector<bool>(mvpMapPointMatches.size(),false);
-                        for(int i=0; i<N; i++)
-                        {
-                            if(mvbRefinedInliers[i])
-                                vbInliers[mvKeyPointIndices[i]] = true;
-                        }
-                        return mRefinedTcw.clone();
-                    }
-
-                }
-            }
-
-            if(mnIterations>=mRansacMaxIts)
-            {
-                bNoMore=true;
-                if(mnBestInliers>=mRansacMinInliers)
-                {
-                    nInliers=mnBestInliers;
-                    vbInliers = vector<bool>(mvpMapPointMatches.size(),false);
-                    for(int i=0; i<N; i++)
-                    {
-                        if(mvbBestInliers[i])
-                            vbInliers[mvKeyPointIndices[i]] = true;
-                    }
-                    return mBestTcw.clone();
-                }
-            }
-
-            return cv::Mat();
+            vAvailableIndices[randi] = vAvailableIndices.back();
+            vAvailableIndices.pop_back();
         }
 
-        void MLPnPsolver::SetRansacParameters(double probability, int minInliers, int maxIterations, int minSet, float epsilon, float th2){
-                mRansacProb = probability;
-            mRansacMinInliers = minInliers;
-            mRansacMaxIts = maxIterations;
-            mRansacEpsilon = epsilon;
-            mRansacMinSet = minSet;
+    //By the moment, we are using MLPnP without covariance info
+    cov3_mats_t covs(1);
 
-            N = mvP2D.size(); // number of correspondences
+    //Result
+    transformation_t result;
 
-            mvbInliersi.resize(N);
+        // Compute camera pose
+    computePose(bearingVecs,p3DS,covs,indexes,result);
 
-            // Adjust Parameters according to number of correspondences
-            int nMinInliers = N*mRansacEpsilon;
-            if(nMinInliers<mRansacMinInliers)
-                nMinInliers=mRansacMinInliers;
-            if(nMinInliers<minSet)
-                nMinInliers=minSet;
-            mRansacMinInliers = nMinInliers;
+    //Save result
+    mRi[0][0] = result(0,0);
+    mRi[0][1] = result(0,1);
+    mRi[0][2] = result(0,2);
 
-            if(mRansacEpsilon<(float)mRansacMinInliers/N)
-                mRansacEpsilon=(float)mRansacMinInliers/N;
+    mRi[1][0] = result(1,0);
+    mRi[1][1] = result(1,1);
+    mRi[1][2] = result(1,2);
 
-            // Set RANSAC iterations according to probability, epsilon, and max iterations
-            int nIterations;
+    mRi[2][0] = result(2,0);
+    mRi[2][1] = result(2,1);
+    mRi[2][2] = result(2,2);
 
-            if(mRansacMinInliers==N)
-                nIterations=1;
-            else
-                nIterations = ceil(log(1-mRansacProb)/log(1-pow(mRansacEpsilon,3)));
+    mti[0] = result(0,3);mti[1] = result(1,3);mti[2] = result(2,3);
 
-            mRansacMaxIts = max(1,min(nIterations,mRansacMaxIts));
+        // Check inliers
+        CheckInliers();
 
-            mvMaxError.resize(mvSigma2.size());
-            for(size_t i=0; i<mvSigma2.size(); i++)
-                mvMaxError[i] = mvSigma2[i]*th2;
+        if(mnInliersi>=mRansacMinInliers)
+        {
+            // If it is the best solution so far, save it
+            if(mnInliersi>mnBestInliers)
+            {
+                mvbBestInliers = mvbInliersi;
+                mnBestInliers = mnInliersi;
+
+                cv::Mat Rcw(3,3,CV_64F,mRi);
+                cv::Mat tcw(3,1,CV_64F,mti);
+                Rcw.convertTo(Rcw,CV_32F);
+                tcw.convertTo(tcw,CV_32F);
+            mBestTcw.setIdentity();
+            mBestTcw.block<3,3>(0,0) = Converter::toMatrix3f(Rcw);
+            mBestTcw.block<3,1>(0,3) = Converter::toVector3f(tcw);
+
+            Eigen::Matrix<double, 3, 3, Eigen::RowMajor> eigRcw(mRi[0]);
+            Eigen::Vector3d eigtcw(mti);
+            }
+
+            if(Refine())
+            {
+                nInliers = mnRefinedInliers;
+                vbInliers = vector<bool>(mvpMapPointMatches.size(),false);
+                for(int i=0; i<N; i++)
+                {
+                    if(mvbRefinedInliers[i])
+                        vbInliers[mvKeyPointIndices[i]] = true;
+                }
+                Tout = mRefinedTcw;
+                return true;
+            }
+
         }
+    }
+
+    if(mnIterations>=mRansacMaxIts)
+    {
+        bNoMore=true;
+        if(mnBestInliers>=mRansacMinInliers)
+        {
+            nInliers=mnBestInliers;
+            vbInliers = vector<bool>(mvpMapPointMatches.size(),false);
+            for(int i=0; i<N; i++)
+            {
+                if(mvbBestInliers[i])
+                    vbInliers[mvKeyPointIndices[i]] = true;
+            }
+            Tout = mBestTcw;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void MLPnPsolver::SetRansacParameters(double probability, int minInliers, int maxIterations, int minSet, float epsilon, float th2){
+        mRansacProb = probability;
+    mRansacMinInliers = minInliers;
+    mRansacMaxIts = maxIterations;
+    mRansacEpsilon = epsilon;
+    mRansacMinSet = minSet;
+
+    N = mvP2D.size(); // number of correspondences
+
+    mvbInliersi.resize(N);
+
+    // Adjust Parameters according to number of correspondences
+    int nMinInliers = N*mRansacEpsilon;
+    if(nMinInliers<mRansacMinInliers)
+        nMinInliers=mRansacMinInliers;
+    if(nMinInliers<minSet)
+        nMinInliers=minSet;
+    mRansacMinInliers = nMinInliers;
+
+    if(mRansacEpsilon<(float)mRansacMinInliers/N)
+        mRansacEpsilon=(float)mRansacMinInliers/N;
+
+    // Set RANSAC iterations according to probability, epsilon, and max iterations
+    int nIterations;
+
+    if(mRansacMinInliers==N)
+        nIterations=1;
+    else
+        nIterations = ceil(log(1-mRansacProb)/log(1-pow(mRansacEpsilon,3)));
+
+    mRansacMaxIts = max(1,min(nIterations,mRansacMaxIts));
+
+    mvMaxError.resize(mvSigma2.size());
+    for(size_t i=0; i<mvSigma2.size(); i++)
+        mvMaxError[i] = mvSigma2[i]*th2;
+}
 
 void MLPnPsolver::CheckInliers(){
     mnInliersi=0;
@@ -338,12 +346,16 @@ bool MLPnPsolver::Refine(){
         cv::Mat tcw(3,1,CV_64F,mti);
         Rcw.convertTo(Rcw,CV_32F);
         tcw.convertTo(tcw,CV_32F);
-        mRefinedTcw = cv::Mat::eye(4,4,CV_32F);
-        Rcw.copyTo(mRefinedTcw.rowRange(0,3).colRange(0,3));
-        tcw.copyTo(mRefinedTcw.rowRange(0,3).col(3));
+        mRefinedTcw.setIdentity();
+
+        mRefinedTcw.block<3,3>(0,0) = Converter::toMatrix3f(Rcw);
+        mRefinedTcw.block<3,1>(0,3) = Converter::toVector3f(tcw);
+
+        Eigen::Matrix<double, 3, 3, Eigen::RowMajor> eigRcw(mRi[0]);
+        Eigen::Vector3d eigtcw(mti);
+
         return true;
     }
-
     return false;
 }
 

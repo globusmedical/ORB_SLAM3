@@ -29,9 +29,8 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 
-#include <System.h>
+#include "System.h"
 #include "ImuTypes.h"
-#include "Optimizer.h"
 
 using namespace std;
 
@@ -130,9 +129,10 @@ int main(int argc, char **argv)
     {
         // Seq loop
         vector<ORB_SLAM3::IMU::Point> vImuMeas;
+#ifdef REGISTER_TIMES
         double t_rect = 0;
         double t_track = 0;
-        int num_rect = 0;
+#endif
         int proccIm = 0;
         for(int ni=0; ni<nImages[seq]; ni++, proccIm++)
         {

@@ -15,9 +15,9 @@ if(WIN32)
   set(G2O_LIB_TYPE STATIC)
 endif(WIN32)
 
-if(G2O_LIB_TYPE MATCHES SHARED)
-  # This goes into config.h
-  set(G2O_SHARED_LIBS True)
+# default built type
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
 endif()
 
 set(G2O_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
