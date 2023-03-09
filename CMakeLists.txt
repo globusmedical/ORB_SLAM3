@@ -40,18 +40,18 @@ else()
 endif()
 
 # Target definition
-set(ORB_SLAM3_LIB_TYPE SHARED)
+set(${PROJECT_NAME}_LIB_TYPE SHARED)
 IF(WIN32)
   # uncomment only one of the lines below:
   # because there is no DLL API in the code,
   # we either have to build STATIC libraries,
-  #set(ORB_SLAM3_LIB_TYPE STATIC)
+  #set(${PROJECT_NAME}_LIB_TYPE STATIC)
   # or we have to export all symbols from all SHARED libraries
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
   # Note that the ideal solution would be to add an export API to the relevant classes.
 ENDIF(WIN32)
 
-add_library(${PROJECT_NAME} ${ORB_SLAM3_LIB_TYPE}
+add_library(${PROJECT_NAME} ${${PROJECT_NAME}_LIB_TYPE}
     src/System.cc
     src/Tracking.cc
     src/LocalMapping.cc
@@ -427,3 +427,16 @@ if(realsense2_FOUND)
             Examples_old/Stereo-Inertial/stereo_inertial_realsense_D435i.cc)
     target_link_libraries(stereo_inertial_realsense_D435i_old ${PROJECT_NAME})
 endif()
+
+# Install
+file(GLOB_RECURSE ${PROJECT_NAME}_HEADERS include/*.h)
+file(GLOB_RECURSE Thirdparty_HEADERS Thirdparty/*.h Thirdparty/*.hpp)
+target_sources(${PROJECT_NAME} PUBLIC
+    FILE_SET library TYPE HEADERS BASE_DIRS include FILES ${${PROJECT_NAME}_HEADERS}
+    FILE_SET thirdparty TYPE HEADERS BASE_DIRS ThirdParty FILES ${Thirdparty_HEADERS}
+)
+install(TARGETS ${PROJECT_NAME} DBoW2 g2o
+    RUNTIME
+    FILE_SET library DESTINATION include/${PROJECT_NAME}
+    FILE_SET thirdparty DESTINATION include/${PROJECT_NAME}/Thirdparty
+)
