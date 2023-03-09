@@ -121,12 +121,12 @@ void MapPoint::SetWorldPos(const Eigen::Vector3f &Pos) {
     mWorldPos = Pos;
 }
 
-Eigen::Vector3f MapPoint::GetWorldPos() {
+Eigen::Vector3f MapPoint::GetWorldPos() const {
     unique_lock<mutex> lock(mMutexPos);
     return mWorldPos;
 }
 
-Eigen::Vector3f MapPoint::GetNormal() {
+Eigen::Vector3f MapPoint::GetNormal() const {
     unique_lock<mutex> lock(mMutexPos);
     return mNormalVector;
 }

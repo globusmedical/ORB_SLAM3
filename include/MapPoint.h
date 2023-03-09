@@ -108,9 +108,9 @@ public:
     MapPoint(const Eigen::Vector3f &Pos,  Map* pMap, Frame* pFrame, const int &idxF);
 
     void SetWorldPos(const Eigen::Vector3f &Pos);
-    Eigen::Vector3f GetWorldPos();
+    Eigen::Vector3f GetWorldPos() const;
 
-    Eigen::Vector3f GetNormal();
+    Eigen::Vector3f GetNormal() const;
     void SetNormalVector(const Eigen::Vector3f& normal);
 
     KeyFrame* GetReferenceKeyFrame();
@@ -241,7 +241,7 @@ protected:
     Map* mpMap;
 
     // Mutex
-    std::mutex mMutexPos;
+    mutable std::mutex mMutexPos;
     std::mutex mMutexFeatures;
     std::mutex mMutexMap;
 
