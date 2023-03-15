@@ -593,12 +593,12 @@ void System::Shutdown()
 
     mpLocalMapper->RequestFinish();
     mpLoopCloser->RequestFinish();
-    /*if(mpViewer)
+    if(mpViewer)
     {
         mpViewer->RequestFinish();
-        while(!mpViewer->isFinished())
-            usleep(5000);
-    }*/
+        /*while(!mpViewer->isFinished())
+            usleep(5000);*/
+    }
 
     // Wait until all thread have effectively stopped
     /*while(!mpLocalMapper->isFinished() || !mpLoopCloser->isFinished() || mpLoopCloser->isRunningGBA())
@@ -623,6 +623,13 @@ void System::Shutdown()
 
     /*if(mpViewer)
         pangolin::BindToContext("ORB-SLAM2: Map Viewer");*/
+
+    if (mptViewer)
+    {
+        mptViewer->join();
+    }
+    mptLocalMapping->join();
+    mptLoopClosing->join();
 
 #ifdef REGISTER_TIMES
     mpTracker->PrintTimeStats();
