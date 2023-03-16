@@ -415,7 +415,7 @@ void FrameDrawer::Update(Tracking *pTracker)
     {
         for(int i=0;i<N;)
         {
-            std::vector<cv::KeyPoint>& vCurrentKeys = i == 0 ? mvCurrentKeys : mvCurrentKeysRight;
+            std::vector<cv::KeyPoint>& vCurrentKeys = i < mvCurrentKeys.size() ? mvCurrentKeys : mvCurrentKeysRight;
             int Nside = vCurrentKeys.size();
             for(int j=0;j<Nside;j++,i++)
             {
@@ -434,12 +434,12 @@ void FrameDrawer::Update(Tracking *pTracker)
                     else
                         mvbVO[i]=true;
 
-                    mmMatchedInImage[pMP->mnId] = mvCurrentKeys[i].pt;
+                    mmMatchedInImage[pMP->mnId] = vCurrentKeys[j].pt;
                 }
                 else
                 {
                     mvpOutlierMPs.push_back(pMP);
-                    mvOutlierKeys.push_back(mvCurrentKeys[i]);
+                    mvOutlierKeys.push_back(vCurrentKeys[j]);
                 }
             }
         }
