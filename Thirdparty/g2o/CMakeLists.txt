@@ -15,11 +15,6 @@ if(WIN32)
   set(G2O_LIB_TYPE STATIC)
 endif(WIN32)
 
-# default built type
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
-
 set(G2O_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 
@@ -69,20 +64,6 @@ if(OPENMP_FOUND AND G2O_USE_OPENMP)
   set(G2O_CXX_FLAGS "${G2O_CXX_FLAGS} -DEIGEN_DONT_PARALLELIZE ${OpenMP_CXX_FLAGS}")
   message(STATUS "Compiling with OpenMP support")
 endif(OPENMP_FOUND AND G2O_USE_OPENMP)
-
-# Compiler specific options for gcc
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -march=native")
-  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -march=native")
-  # activate warnings
-  set(G2O_C_FLAGS "${G2O_C_FLAGS} -Wall -W")
-  set(G2O_CXX_FLAGS "${G2O_CXX_FLAGS} -Wall -W")
-endif()
-# Compiler specific options for MSVC
-if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-  set(G2O_C_FLAGS "${G2O_C_FLAGS} /W3")
-  set(G2O_CXX_FLAGS "${G2O_CXX_FLAGS} /W3")
-endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${G2O_CXX_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${G2O_C_FLAGS}")
