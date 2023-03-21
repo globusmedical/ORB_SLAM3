@@ -160,6 +160,11 @@ public:
     std::set<long unsigned int> msOptKFs;
     std::set<long unsigned int> msFixedKFs;
 
+    // DRB Pose seeding
+    bool mbIsInitializedWithDRB;
+    void SetInitializedWithDRB(bool initializeWithDRB);
+    bool IsInitializedWithDRB();
+
 protected:
 
     long unsigned int mnId;

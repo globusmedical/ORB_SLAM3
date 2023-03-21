@@ -48,6 +48,9 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    std::cout << "Sleeping for 5 secs" << endl << std::flush;
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+
     const int num_seq = (argc-3)/2;
     cout << "num_seq = " << num_seq << endl;
     bool bFileName= (((argc-3) % 2) == 1);
@@ -123,7 +126,8 @@ int main(int argc, char **argv)
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
     ORB_SLAM3::System SLAM(argv[1],argv[2],ORB_SLAM3::System::IMU_STEREO, true);
-
+	std::chrono::steady_clock::time_point time = std::chrono::steady_clock::now();
+	
     cv::Mat imLeft, imRight;
     for (seq = 0; seq<num_seq; seq++)
     {
@@ -136,6 +140,7 @@ int main(int argc, char **argv)
         int proccIm = 0;
         for(int ni=0; ni<nImages[seq]; ni++, proccIm++)
         {
+            std::cout << 100 * ni / nImages[seq] << "%\r" << std::flush;
             // Read left and right images from file
             imLeft = cv::imread(vstrImageLeft[seq][ni],cv::IMREAD_UNCHANGED);
             imRight = cv::imread(vstrImageRight[seq][ni],cv::IMREAD_UNCHANGED);
@@ -202,7 +207,8 @@ int main(int argc, char **argv)
 
             if (ttrack < T) {
                 long usec = static_cast<long>((T - ttrack) * 1e6);
-                std::this_thread::sleep_for(std::chrono::microseconds(usec));
+				time += std::chrono::microseconds(usec);
+                std::this_thread::sleep_until(time);
             }
         }
 

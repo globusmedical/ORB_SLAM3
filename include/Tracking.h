@@ -62,7 +62,7 @@ public:
     bool ParseIMUParamFile(cv::FileStorage &fSettings);
 
     // Preprocess the input and call Track(). Extract features and performs stereo matching.
-    Sophus::optional<Sophus::SE3f> GrabImageStereo(const cv::Mat &imRectLeft,const cv::Mat &imRectRight, const double &timestamp, std::string filename);
+    Sophus::optional<Sophus::SE3f> GrabImageStereo(const cv::Mat &imRectLeft,const cv::Mat &imRectRight, const double &timestamp, std::string filename, const Eigen::Matrix4d &T_c_drb = Eigen::Matrix4d());
     Sophus::optional<Sophus::SE3f> GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const double &timestamp, std::string filename);
     Sophus::optional<Sophus::SE3f> GrabImageMonocular(const cv::Mat &im, const double &timestamp, std::string filename);
 
@@ -347,6 +347,10 @@ protected:
     int initID, lastID;
 
     Sophus::SE3f mTlr;
+    
+    // DRB Pose seeding
+    bool mbHasDrbPose;
+    Sophus::SE3f mT_c_drb;
 
     void newParameterLoader(Settings* settings);
 

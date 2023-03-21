@@ -25,6 +25,8 @@
 #include <mutex>
 #include <opencv2/imgproc.hpp>
 
+#include <iomanip>
+
 using namespace std;
 
 namespace ORB_SLAM3
@@ -360,14 +362,20 @@ void FrameDrawer::DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText)
         s << " LOADING ORB VOCABULARY. PLEASE WAIT...";
     }
 
+    stringstream posStream;
+    auto xyz = mCurrentFrame.GetPose().translation();
+    long long int tstamp = static_cast<long long int>(round(mCurrentFrame.mTimeStamp * 1e6));
+    posStream << "tstamp: " << tstamp << std::setprecision(5) <<  " | XYZ: [" << xyz.transpose() << "]";
+    
     int baseline=0;
-    cv::Size textSize = cv::getTextSize(s.str(),cv::FONT_HERSHEY_PLAIN,1,1,&baseline);
+    cv::Size textSize1 = cv::getTextSize(s.str(),cv::FONT_HERSHEY_PLAIN,1,1,&baseline);
+    cv::Size textSize2 = cv::getTextSize(posStream.str(),cv::FONT_HERSHEY_PLAIN,1,1,&baseline);
 
-    imText = cv::Mat(im.rows+textSize.height+10,im.cols,im.type());
+    imText = cv::Mat(im.rows + textSize1.height + textSize2.height + 20, im.cols, im.type());
     im.copyTo(imText.rowRange(0,im.rows).colRange(0,im.cols));
-    imText.rowRange(im.rows,imText.rows) = cv::Mat::zeros(textSize.height+10,im.cols,im.type());
-    cv::putText(imText,s.str(),cv::Point(5,imText.rows-5),cv::FONT_HERSHEY_PLAIN,1,cv::Scalar(255,255,255),1,8);
-
+    imText.rowRange(im.rows,imText.rows) = cv::Mat::zeros(textSize1.height + textSize2.height + 20,im.cols,im.type());
+    cv::putText(imText,s.str(),cv::Point(5,imText.rows-textSize2.height-15),cv::FONT_HERSHEY_PLAIN,1,cv::Scalar(255,255,255),1,8);
+    cv::putText(imText,posStream.str(),cv::Point(5,imText.rows-5),cv::FONT_HERSHEY_PLAIN,1,cv::Scalar(255,255,255),1,8);
 }
 
 void FrameDrawer::Update(Tracking *pTracker)

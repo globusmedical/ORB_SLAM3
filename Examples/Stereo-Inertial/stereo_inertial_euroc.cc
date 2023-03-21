@@ -47,6 +47,8 @@ int main(int argc, char **argv)
         cerr << endl << "Usage: ./stereo_inertial_euroc path_to_vocabulary path_to_settings path_to_sequence_folder_1 path_to_times_file_1 (path_to_image_folder_2 path_to_times_file_2 ... path_to_image_folder_N path_to_times_file_N) " << endl;
         return 1;
     }
+    std::cout << "Sleeping for 5 secs" << endl << std::flush;
+    std::this_thread::sleep_for(std::chrono::seconds(5));
 
     const int num_seq = (argc-3)/2;
     cout << "num_seq = " << num_seq << endl;

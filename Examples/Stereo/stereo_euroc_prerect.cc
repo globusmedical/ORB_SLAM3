@@ -21,6 +21,7 @@
 #include <fstream>
 #include <iomanip>
 #include <chrono>
+#include <unordered_map>
 
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core/core.hpp>
@@ -34,6 +35,9 @@ using namespace std;
 void LoadImages(const string &strPathLeft, const string &strPathRight, const string &strPathTimes,
                 vector<string> &vstrImageLeft, vector<string> &vstrImageRight, vector<double> &vTimeStamps);
 
+void LoadDRBPoses(const string &strPosesPath, std::unordered_map<long long int, Eigen::Matrix4d> &drbPoses);
+void writePosesToFile(const string& strPosesPath, const vector<std::pair<long long int, Sophus::SE3f>>& vTcw);
+
 int main(int argc, char **argv)
 {
     if(argc < 4)
@@ -42,14 +46,16 @@ int main(int argc, char **argv)
 
         return 1;
     }
-
+    std::cout << "Sleeping for 5 secs" << endl << std::flush;
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    
     bool wait = true;
     if (!memcmp(argv[1], "--wait=", 7)) {
       --argc;
       wait = argv++[1][7] != '0';
     }
 
-    const int num_seq = argc-3;
+    const int num_seq = (argc-3)/2;
     cout << "num_seq = " << num_seq << endl;
     bool bFileName = false;
     string file_name;
@@ -65,6 +71,7 @@ int main(int argc, char **argv)
     vector< vector<string> > vstrImageRight;
     vector< vector<double> > vTimestampsCam;
     vector<int> nImages;
+    unordered_map<long long int, Eigen::Matrix4d> drbPoses;
 
     vstrImageLeft.resize(num_seq);
     vstrImageRight.resize(num_seq);
@@ -76,13 +83,16 @@ int main(int argc, char **argv)
     {
         cout << "Loading images for sequence " << seq << "...";
 
-        string pathSeq(argv[seq + 3]);
+        string pathSeq(argv[3*seq + 3]);
 
         string pathTimeStamps = pathSeq + "/timestamps.txt";
         string pathCam0 = pathSeq + "/mav0/cam0/data";
         string pathCam1 = pathSeq + "/mav0/cam1/data";
+        string pathDrbPoses = pathSeq + "/poses.txt";
 
         LoadImages(pathCam0, pathCam1, pathTimeStamps, vstrImageLeft[seq], vstrImageRight[seq], vTimestampsCam[seq]);
+        LoadDRBPoses(pathDrbPoses, drbPoses);
+        
         cout << "LOADED!" << endl;
 
         nImages[seq] = vstrImageLeft[seq].size();
@@ -100,9 +110,14 @@ int main(int argc, char **argv)
     ORB_SLAM3::System SLAM(argv[1],argv[2],ORB_SLAM3::System::STEREO, true);
 
     cv::Mat imLeft, imRight;
+    // variable to store vectore of 
+    vector <std::pair<long long int, Sophus::SE3f>> vTcw;
+    vTcw.reserve(5000);
+    vector <std::pair<long long int, Sophus::SE3f>> vTcd;
+    vTcd.reserve(5000);
     for (seq = 0; seq<num_seq; seq++)
     {
-
+        
         // Seq loop
 
         double t_rect = 0;
@@ -136,9 +151,19 @@ int main(int argc, char **argv)
     #else
             std::chrono::monotonic_clock::time_point t1 = std::chrono::monotonic_clock::now();
     #endif
-
+            long long int tstamp = static_cast<long long int>(round(tframe * 1e6));
+            cout << "tstamp::" << tstamp << endl;
+            Eigen::Matrix4d T_c_drb = Eigen::Matrix4d::Zero();
+            if (drbPoses.find(tstamp) != drbPoses.end())
+            {
+                T_c_drb = drbPoses[tstamp];
+                vTcd.push_back(std::make_pair(tstamp, Sophus::SE3f(T_c_drb.cast<float>())));
+            }
+                
             // Pass the images to the SLAM system
-            SLAM.TrackStereo(imLeft,imRight,tframe, vector<ORB_SLAM3::IMU::Point>(), vstrImageLeft[seq][ni]);
+            auto Twc = SLAM.TrackStereo(imLeft,imRight,tframe, vector<ORB_SLAM3::IMU::Point>(), vstrImageLeft[seq][ni], T_c_drb);
+            if (Twc && Twc->translation().norm() > 0)
+                vTcw.push_back(std::make_pair(tstamp, *Twc));
 
     #ifdef COMPILEDWITHC11
             std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
@@ -176,6 +201,11 @@ int main(int argc, char **argv)
         }
 
     }
+    
+    // write a function to write vTcw to a file
+    writePosesToFile("slamtrajectory.txt", vTcw);
+    writePosesToFile("drbtrajectory.txt", vTcd);
+    
     // Stop all threads
     SLAM.Shutdown();
 
@@ -220,4 +250,111 @@ void LoadImages(const string &strPathLeft, const string &strPathRight, const str
 
         }
     }
+}
+
+
+void LoadDRBPoses(const string &strPosesPath, std::unordered_map<long long int, Eigen::Matrix4d> &drbPoses)
+{
+    ifstream fDrbPoses;
+    fDrbPoses.open(strPosesPath.c_str());
+
+    // Transformation from GNS to OpenCV coordinate system
+    Eigen::Matrix4d T_cv_gns = Eigen::Matrix4d::Zero();
+    T_cv_gns(0, 0) = -1;
+    T_cv_gns(1, 2) = 1;
+    T_cv_gns(2, 1) = 1;
+    T_cv_gns(3, 3) = 1;
+
+    // Transformation from Wide to Tall image coordinate system (Unrolled/Rolled)
+    Eigen::Matrix4d T_tallIm_wideIm = Eigen::Matrix4d::Zero();
+    T_tallIm_wideIm(0, 1) = 1;
+    T_tallIm_wideIm(1, 0) = -1;
+    T_tallIm_wideIm(2, 2) = 1;
+    T_tallIm_wideIm(3, 3) = 1;
+    
+    // Transformation from Unrectified to Rectified coordinate system
+    Eigen::Matrix4d T_rect_unrect = Eigen::Matrix4d::Identity();
+
+    // HS P13 Values
+   /* T_rect_unrect(0, 0) = 0.994558853084219;
+    T_rect_unrect(0, 1) = 0.008337477748085;
+    T_rect_unrect(0, 2) = 0.103842063811366;
+    T_rect_unrect(1, 0) = -0.007013491912108;
+    T_rect_unrect(1, 1) = 0.999889481440259;
+    T_rect_unrect(1, 2) = -0.013108616873251;
+    T_rect_unrect(2, 0) = -0.103939880137522;
+    T_rect_unrect(2, 1) = 0.012308995488303;
+    T_rect_unrect(2, 2) = 0.994507410704951;*/
+
+    // HS P1.2 Values
+    T_rect_unrect(0, 0) = 0.994863943339954;
+    T_rect_unrect(0, 1) = -0.002161664462900;
+    T_rect_unrect(0, 2) = 0.101198129670592;
+    T_rect_unrect(1, 0) = 0.001479505864314;
+    T_rect_unrect(1, 1) = 0.999975680456105;
+    T_rect_unrect(1, 2) = 0.006815391312918;
+    T_rect_unrect(2, 0) = -0.101210401167437;
+    T_rect_unrect(2, 1) = -0.006630663850669;
+    T_rect_unrect(2, 2) = 0.994842946897864;
+
+    while (!fDrbPoses.eof()) {
+        string s;
+        getline(fDrbPoses, s);
+        if (s[0] == '/' || s[14]=='0')
+            continue;
+
+        if (!s.empty()) {
+            string item;
+            size_t pos = 0;
+            double data[11];
+            int count = 0;
+            while ((pos = s.find(',')) != string::npos) {
+                item = s.substr(0, pos);
+                s.erase(0, pos + 1);
+                if (item[1] == 'e')
+                  continue;
+                data[count++] = stod(item);
+            }
+            item = s.substr(0, pos);
+            data[10] = stod(item);
+
+            if (count >= 10) 
+            {
+                Eigen::Vector3d t(data[4], data[5], data[6]);
+                Eigen::Quaterniond Q(/*w,x,y,z*/data[7], data[8], data[9], data[10]);
+                auto R = Q.normalized().toRotationMatrix();
+                Eigen::Matrix4d T_cGNS_drb;
+                // Set to Identity to make bottom row of Matrix [0,0,0,1]
+                T_cGNS_drb.setIdentity();
+                T_cGNS_drb.block<3, 3>(0, 0) = R;
+                T_cGNS_drb.block<3, 1>(0, 3) = t / 1e3;
+                
+                Eigen::Matrix4d T_c_drb = T_rect_unrect * T_tallIm_wideIm * T_cv_gns * T_cGNS_drb;
+                                
+                long long int tstamp = static_cast<long long int>(round(data[0]));
+                drbPoses.insert(make_pair(tstamp, T_c_drb));
+            }
+            
+        }
+    }
+}
+
+
+// write a function to write vTcw to a file
+void writePosesToFile(const string& strPosesPath, const vector<std::pair<long long int, Sophus::SE3f>>& poses)
+{
+    ofstream fPoses;
+    fPoses.open(strPosesPath.c_str());
+
+    fPoses << "# timestamp tx ty tz qx qy qz qw"<<endl;
+    for (size_t i = 0; i < poses.size(); i++)
+    {
+        Sophus::SE3f Twc = poses[i].second;
+        auto R = Twc.rotationMatrix();
+        auto t = Twc.translation();
+        Eigen::Quaternionf Q(R);
+
+        fPoses << fixed << setprecision(6) << poses[i].first << ", " << t(0) << ", " << t(1) << ", " << t(2) << ", " << Q.x() << ", " << Q.y() << ", " << Q.z() << ", " << Q.w() << endl;
+    }
+    fPoses.close();
 }

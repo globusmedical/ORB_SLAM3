@@ -48,7 +48,7 @@ public:
 
     void static LocalBundleAdjustment(KeyFrame* pKF, bool *pbStopFlag, Map *pMap, int& num_fixedKF, int& num_OptKF, int& num_MPs, int& num_edges);
 
-    int static PoseOptimization(Frame* pFrame);
+    int static PoseOptimization(Frame* pFrame, const bool fixPose=false);
     int static PoseInertialOptimizationLastKeyFrame(Frame* pFrame, bool bRecInit = false);
     int static PoseInertialOptimizationLastFrame(Frame *pFrame, bool bRecInit = false);
 

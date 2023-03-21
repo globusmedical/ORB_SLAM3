@@ -1639,26 +1639,35 @@ bool Tracking::GetStepByStep()
 
 
 
-Sophus::optional<Sophus::SE3f> Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRectRight, const double &timestamp, string filename)
+Sophus::optional<Sophus::SE3f> Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRectRight, const double &timestamp, string filename, const Eigen::Matrix4d &T_c_drb)
 {
     //cout << "GrabImageStereo" << endl;
 
     mImGray = imRectLeft;
-    cv::Mat imGrayRight = imRectRight;
     mImRight = imRectRight;
-
+    if (T_c_drb.isZero())
+    {
+        mbHasDrbPose = false;
+        mT_c_drb = Sophus::SE3f();
+    }
+    else
+    {
+        mbHasDrbPose = true;
+        mT_c_drb = Sophus::SE3f(T_c_drb.cast<float>());
+    }
+    
     if(mImGray.channels()==3)
     {
         //cout << "Image with 3 channels" << endl;
         if(mbRGB)
         {
             cvtColor(mImGray,mImGray,cv::COLOR_RGB2GRAY);
-            cvtColor(imGrayRight,imGrayRight,cv::COLOR_RGB2GRAY);
+            cvtColor(mImRight, mImRight, cv::COLOR_RGB2GRAY);
         }
         else
         {
             cvtColor(mImGray,mImGray,cv::COLOR_BGR2GRAY);
-            cvtColor(imGrayRight,imGrayRight,cv::COLOR_BGR2GRAY);
+            cvtColor(mImRight, mImRight, cv::COLOR_BGR2GRAY);
         }
     }
     else if(mImGray.channels()==4)
@@ -1667,25 +1676,25 @@ Sophus::optional<Sophus::SE3f> Tracking::GrabImageStereo(const cv::Mat &imRectLe
         if(mbRGB)
         {
             cvtColor(mImGray,mImGray,cv::COLOR_RGBA2GRAY);
-            cvtColor(imGrayRight,imGrayRight,cv::COLOR_RGBA2GRAY);
+            cvtColor(mImRight, mImRight, cv::COLOR_RGBA2GRAY);
         }
         else
         {
             cvtColor(mImGray,mImGray,cv::COLOR_BGRA2GRAY);
-            cvtColor(imGrayRight,imGrayRight,cv::COLOR_BGRA2GRAY);
+            cvtColor(mImRight, mImRight, cv::COLOR_BGRA2GRAY);
         }
     }
 
     //cout << "Incoming frame creation" << endl;
 
     if (mSensor == System::STEREO && !mpCamera2)
-        mCurrentFrame = Frame(mImGray,imGrayRight,timestamp,mpORBextractorLeft,mpORBextractorRight,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth,mpCamera);
+        mCurrentFrame = Frame(mImGray,mImRight,timestamp,mpORBextractorLeft,mpORBextractorRight,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth,mpCamera);
     else if(mSensor == System::STEREO && mpCamera2)
-        mCurrentFrame = Frame(mImGray,imGrayRight,timestamp,mpORBextractorLeft,mpORBextractorRight,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth,mpCamera,mpCamera2,mTlr);
+        mCurrentFrame = Frame(mImGray,mImRight,timestamp,mpORBextractorLeft,mpORBextractorRight,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth,mpCamera,mpCamera2,mTlr);
     else if(mSensor == System::IMU_STEREO && !mpCamera2)
-        mCurrentFrame = Frame(mImGray,imGrayRight,timestamp,mpORBextractorLeft,mpORBextractorRight,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth,mpCamera,&mLastFrame,*mpImuCalib);
+        mCurrentFrame = Frame(mImGray,mImRight,timestamp,mpORBextractorLeft,mpORBextractorRight,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth,mpCamera,&mLastFrame,*mpImuCalib);
     else if(mSensor == System::IMU_STEREO && mpCamera2)
-        mCurrentFrame = Frame(mImGray,imGrayRight,timestamp,mpORBextractorLeft,mpORBextractorRight,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth,mpCamera,mpCamera2,mTlr,&mLastFrame,*mpImuCalib);
+        mCurrentFrame = Frame(mImGray,mImRight,timestamp,mpORBextractorLeft,mpORBextractorRight,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth,mpCamera,mpCamera2,mTlr,&mLastFrame,*mpImuCalib);
 
     //cout << "Incoming frame ended" << endl;
 
@@ -1985,7 +1994,7 @@ void Tracking::ResetFrameIMU()
 
 void Tracking::Track()
 {
-
+    
     if (bStepByStep)
     {
         std::cout << "Tracking: Waiting to the next step" << std::endl;
@@ -2092,6 +2101,11 @@ void Tracking::Track()
     {
         if(mSensor==System::STEREO || mSensor==System::RGBD || mSensor==System::IMU_STEREO || mSensor==System::IMU_RGBD)
         {
+            // Pose Seeding: Start off with DRB pose if available
+            if(mbHasDrbPose)
+                pCurrentMap->SetInitializedWithDRB(true);
+            else
+                pCurrentMap->SetInitializedWithDRB(false);
             StereoInitialization();
         }
         else
@@ -2133,10 +2147,13 @@ void Tracking::Track()
 
                 // Local Mapping might have changed some MapPoints tracked in last frame
                 CheckReplacedInLastFrame();
-
+                
+                // This is where mTcw gets filled in. mTcw is set to mT_c_drb, if available, and the map points are created based on that
                 if((!mbVelocity && !pCurrentMap->isImuInitialized()) || mCurrentFrame.mnId<mnLastRelocFrameId+2)
                 {
                     Verbose::PrintMess("TRACK: Track with respect to the reference KF ", Verbose::VERBOSITY_DEBUG);
+                    // The pose is computed with respect to the reference frame if mT_c_drb is not available. 
+                    // The pose of the current frame is optimized by minimizing reprojection errors for a stereo system.
                     bOK = TrackReferenceKeyFrame();
                 }
                 else
@@ -2559,7 +2576,11 @@ void Tracking::StereoInitialization()
             mCurrentFrame.SetImuPoseVelocity(Rwb0, twb0, Vwb0);
         }
         else
-            mCurrentFrame.SetPose(Sophus::SE3f());
+        {
+            // mT_c_drb is the camera pose in the DRB coordinate system, if available.
+            // If not available, it is set to the origin ie. Identity.
+            mCurrentFrame.SetPose(mT_c_drb);
+        }
 
         // Create KeyFrame
         KeyFrame* pKFini = new KeyFrame(mCurrentFrame,mpAtlas->GetCurrentMap(),mpKeyFrameDB);
@@ -2909,8 +2930,12 @@ void Tracking::CheckReplacedInLastFrame()
 }
 
 
+// The map points have uncertainties/information, but the pose itself
+// doesn't in this optimization. It is either fixed or not fixed. But 
+// I believe there should be a way to give information matrix to poses
 bool Tracking::TrackReferenceKeyFrame()
 {
+    bool fixPoseWithDRB = (mpAtlas->GetCurrentMap()->IsInitializedWithDRB() && mbHasDrbPose);
     // Compute Bag of Words vector
     mCurrentFrame.ComputeBoW();
 
@@ -2921,20 +2946,24 @@ bool Tracking::TrackReferenceKeyFrame()
 
     int nmatches = matcher.SearchByBoW(mpReferenceKF,mCurrentFrame,vpMapPointMatches);
 
-    if(nmatches<15)
+    if ((!fixPoseWithDRB && nmatches < 15) || (fixPoseWithDRB && nmatches < 15))
     {
         cout << "TRACK_REF_KF: Less than 15 matches!!\n";
         return false;
     }
 
     mCurrentFrame.mvpMapPoints = vpMapPointMatches;
-    mCurrentFrame.SetPose(mLastFrame.GetPose());
+    
+    if(fixPoseWithDRB)
+        mCurrentFrame.SetPose(mT_c_drb);
+    else
+        mCurrentFrame.SetPose(mLastFrame.GetPose());
 
     //mCurrentFrame.PrintPointDistribution();
 
 
     // cout << " TrackReferenceKeyFrame mLastFrame.mTcw:  " << mLastFrame.mTcw << endl;
-    Optimizer::PoseOptimization(&mCurrentFrame);
+    Optimizer::PoseOptimization(&mCurrentFrame, fixPoseWithDRB);
 
     // Discard outliers
     int nmatchesMap = 0;
@@ -3045,6 +3074,7 @@ void Tracking::UpdateLastFrame()
 
 bool Tracking::TrackWithMotionModel()
 {
+    bool fixPoseWithDRB = (mpAtlas->GetCurrentMap()->IsInitializedWithDRB() && mbHasDrbPose);
     ORBmatcher matcher(0.9,true);
 
     // Update last frame pose according to its reference keyframe
@@ -3059,11 +3089,11 @@ bool Tracking::TrackWithMotionModel()
     }
     else
     {
-        mCurrentFrame.SetPose(mVelocity * mLastFrame.GetPose());
+        if (fixPoseWithDRB)
+            mCurrentFrame.SetPose(mT_c_drb);
+        else
+            mCurrentFrame.SetPose(mVelocity * mLastFrame.GetPose());
     }
-
-
-
 
     fill(mCurrentFrame.mvpMapPoints.begin(),mCurrentFrame.mvpMapPoints.end(),nullptr);
 
@@ -3078,7 +3108,7 @@ bool Tracking::TrackWithMotionModel()
     int nmatches = matcher.SearchByProjection(mCurrentFrame,mLastFrame,th,mSensor==System::MONOCULAR || mSensor==System::IMU_MONOCULAR);
 
     // If few matches, uses a wider window search
-    if(nmatches<20)
+    if((!fixPoseWithDRB && nmatches < 20) || (fixPoseWithDRB && nmatches < 10))
     {
         Verbose::PrintMess("Not enough matches, wider window search!!", Verbose::VERBOSITY_NORMAL);
         fill(mCurrentFrame.mvpMapPoints.begin(),mCurrentFrame.mvpMapPoints.end(), nullptr);
@@ -3088,7 +3118,7 @@ bool Tracking::TrackWithMotionModel()
 
     }
 
-    if(nmatches<20)
+    if ((!fixPoseWithDRB && nmatches < 20) || (fixPoseWithDRB && nmatches < 10))
     {
         Verbose::PrintMess("Not enough matches!!", Verbose::VERBOSITY_NORMAL);
         if (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
@@ -3098,7 +3128,7 @@ bool Tracking::TrackWithMotionModel()
     }
 
     // Optimize frame pose with all matches
-    Optimizer::PoseOptimization(&mCurrentFrame);
+    Optimizer::PoseOptimization(&mCurrentFrame, fixPoseWithDRB);
 
     // Discard outliers
     int nmatchesMap = 0;
@@ -3132,7 +3162,7 @@ bool Tracking::TrackWithMotionModel()
         return nmatches>20;
     }
 
-    if (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
+    if (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD || fixPoseWithDRB)
         return true;
     else
         return nmatchesMap>=10;
@@ -3140,7 +3170,7 @@ bool Tracking::TrackWithMotionModel()
 
 bool Tracking::TrackLocalMap()
 {
-
+    bool fixPoseWithDRB = (mpAtlas->GetCurrentMap()->IsInitializedWithDRB() && mbHasDrbPose);
     // We have an estimation of the camera pose and some map points tracked in the frame.
     // We retrieve the local map and try to find matches to points in the local map.
     mTrackedFr++;
@@ -3160,13 +3190,13 @@ bool Tracking::TrackLocalMap()
 
     int inliers;
     if (!mpAtlas->isImuInitialized())
-        Optimizer::PoseOptimization(&mCurrentFrame);
+        Optimizer::PoseOptimization(&mCurrentFrame, fixPoseWithDRB && false);
     else
     {
         if(mCurrentFrame.mnId<=mnLastRelocFrameId+mnFramesToResetIMU)
         {
             Verbose::PrintMess("TLM: PoseOptimization ", Verbose::VERBOSITY_DEBUG);
-            Optimizer::PoseOptimization(&mCurrentFrame);
+            Optimizer::PoseOptimization(&mCurrentFrame, fixPoseWithDRB && false);
         }
         else
         {
