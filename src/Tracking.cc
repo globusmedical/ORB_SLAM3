@@ -2544,7 +2544,7 @@ void Tracking::Track()
 void Tracking::StereoInitialization()
 {
     bool okayToInitialize = (mOnlyInitWithDrb && mbHasDrbPose) || !mOnlyInitWithDrb;
-    if(okayToInitialize && mCurrentFrame.N>100)
+    if(okayToInitialize && mCurrentFrame.N>500)
     {
         if (mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
         {
@@ -3166,7 +3166,7 @@ bool Tracking::TrackWithMotionModel()
         return nmatches>20;
     }
 
-    if (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD || fixPoseWithDRB)
+    if (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD/* || fixPoseWithDRB*/)
         return true;
     else
         return nmatchesMap>=10;
