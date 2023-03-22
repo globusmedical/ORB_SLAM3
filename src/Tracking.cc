@@ -2105,10 +2105,7 @@ void Tracking::Track()
         if(mSensor==System::STEREO || mSensor==System::RGBD || mSensor==System::IMU_STEREO || mSensor==System::IMU_RGBD)
         {
             // Pose Seeding: Start off with DRB pose if available
-            if(mbHasDrbPose)
-                pCurrentMap->SetInitializedWithDRB(true);
-            else
-                pCurrentMap->SetInitializedWithDRB(false);
+            pCurrentMap->SetInitializedWithDRB(mbHasDrbPose);
             StereoInitialization();
         }
         else
@@ -2547,7 +2544,7 @@ void Tracking::Track()
 void Tracking::StereoInitialization()
 {
     bool okayToInitialize = (mOnlyInitWithDrb && mbHasDrbPose) || !mOnlyInitWithDrb;
-    if(okayToInitialize && mCurrentFrame.N>500)
+    if(okayToInitialize && mCurrentFrame.N>100)
     {
         if (mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
         {
@@ -2581,7 +2578,7 @@ void Tracking::StereoInitialization()
         }
         else
         {
-            // mT_c_drb is the camera pose in the DRB coordinate system, if available.
+            // mT_c_drb is the DRB pose in the camera coordinate system, if available.
             // If not available, it is set to the origin ie. Identity.
             mCurrentFrame.SetPose(mT_c_drb);
         }
@@ -2950,6 +2947,7 @@ bool Tracking::TrackReferenceKeyFrame()
 
     int nmatches = matcher.SearchByBoW(mpReferenceKF,mCurrentFrame,vpMapPointMatches);
 
+    // TODO: Change nnmatches for the drb tracked case
     if ((!fixPoseWithDRB && nmatches < 15) || (fixPoseWithDRB && nmatches < 15))
     {
         cout << "TRACK_REF_KF: Less than 15 matches!!\n";
@@ -3112,6 +3110,7 @@ bool Tracking::TrackWithMotionModel()
     int nmatches = matcher.SearchByProjection(mCurrentFrame,mLastFrame,th,mSensor==System::MONOCULAR || mSensor==System::IMU_MONOCULAR);
 
     // If few matches, uses a wider window search
+    // TODO: tune nmatches for the drb case
     if((!fixPoseWithDRB && nmatches < 20) || (fixPoseWithDRB && nmatches < 10))
     {
         Verbose::PrintMess("Not enough matches, wider window search!!", Verbose::VERBOSITY_NORMAL);
@@ -3122,6 +3121,7 @@ bool Tracking::TrackWithMotionModel()
 
     }
 
+    // TODO: tune nmatches for the drb case
     if ((!fixPoseWithDRB && nmatches < 20) || (fixPoseWithDRB && nmatches < 10))
     {
         Verbose::PrintMess("Not enough matches!!", Verbose::VERBOSITY_NORMAL);
