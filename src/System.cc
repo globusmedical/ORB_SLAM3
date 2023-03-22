@@ -281,7 +281,7 @@ System::~System()
     delete mptLocalMapping;
 }
 
-Sophus::optional<Sophus::SE3f> System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp, const vector<IMU::Point>& vImuMeas, string filename, const Eigen::Matrix4d& T_c_drb)
+Sophus::optional<Sophus::SE3f> System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp, const vector<IMU::Point>& vImuMeas, string filename, const bool onlyInitWithDrb, const Eigen::Matrix4d& T_c_drb)
 {
     if(mSensor!=STEREO && mSensor!=IMU_STEREO)
     {
@@ -353,7 +353,7 @@ Sophus::optional<Sophus::SE3f> System::TrackStereo(const cv::Mat &imLeft, const 
             mpTracker->GrabImuData(vImuMeas[i_imu]);
 
     // std::cout << "start GrabImageStereo" << std::endl;
-    auto Tcw = mpTracker->GrabImageStereo(imLeftToFeed,imRightToFeed,timestamp,filename,T_c_drb);
+    auto Tcw = mpTracker->GrabImageStereo(imLeftToFeed,imRightToFeed,timestamp,filename,onlyInitWithDrb,T_c_drb);
 
     // std::cout << "out grabber" << std::endl;
 

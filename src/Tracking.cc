@@ -1639,12 +1639,15 @@ bool Tracking::GetStepByStep()
 
 
 
-Sophus::optional<Sophus::SE3f> Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRectRight, const double &timestamp, string filename, const Eigen::Matrix4d &T_c_drb)
+Sophus::optional<Sophus::SE3f> Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRectRight, const double &timestamp, string filename, const bool onlyInitWithDrb, const Eigen::Matrix4d &T_c_drb)
 {
     //cout << "GrabImageStereo" << endl;
 
     mImGray = imRectLeft;
     mImRight = imRectRight;
+
+    // DRB Seeding changes
+    mOnlyInitWithDrb = onlyInitWithDrb;
     if (T_c_drb.isZero())
     {
         mbHasDrbPose = false;
@@ -2543,7 +2546,8 @@ void Tracking::Track()
 
 void Tracking::StereoInitialization()
 {
-    if(mCurrentFrame.N>500)
+    bool okayToInitialize = (mOnlyInitWithDrb && mbHasDrbPose) || !mOnlyInitWithDrb;
+    if(okayToInitialize && mCurrentFrame.N>500)
     {
         if (mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
         {

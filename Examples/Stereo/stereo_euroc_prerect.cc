@@ -161,7 +161,7 @@ int main(int argc, char **argv)
             }
                 
             // Pass the images to the SLAM system
-            auto Twc = SLAM.TrackStereo(imLeft,imRight,tframe, vector<ORB_SLAM3::IMU::Point>(), vstrImageLeft[seq][ni], T_c_drb);
+            auto Twc = SLAM.TrackStereo(imLeft,imRight,tframe, vector<ORB_SLAM3::IMU::Point>(), vstrImageLeft[seq][ni], /*onlyInitWithDrb*/true, T_c_drb);
             if (Twc && Twc->translation().norm() > 0)
                 vTcw.push_back(std::make_pair(tstamp, *Twc));
 
