@@ -2543,8 +2543,8 @@ void Tracking::Track()
 
 void Tracking::StereoInitialization()
 {
-    bool okayToInitialize = (mOnlyInitWithDrb && mbHasDrbPose) || !mOnlyInitWithDrb;
-    if(okayToInitialize && mCurrentFrame.N>500)
+    bool okayToInitialize = (mOnlyInitWithDrb && mbHasDrbPose && mCurrentFrame.N > 100) || (!mOnlyInitWithDrb && mCurrentFrame.N > 300);
+    if(okayToInitialize)
     {
         if (mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
         {
