@@ -27,7 +27,6 @@ set(SRCS_DUTILS
   DUtils/Random.cpp
   DUtils/Timestamp.cpp)
 
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 add_library(DBoW2 SHARED ${SRCS_DBOW2} ${SRCS_DUTILS})
 
 find_package(OpenCV 4 QUIET)
