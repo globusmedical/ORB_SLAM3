@@ -36,9 +36,9 @@ using namespace std;
 namespace ORB_SLAM3
 {
 
-Viewer::Viewer(System* pSystem, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Tracking *pTracking, const string &strSettingPath, Settings* settings):
+Viewer::Viewer(System* pSystem, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Tracking *pTracking, const string &strSettingPath, Settings* settings, const std::string& name):
     both(pFrameDrawer->both), mpSystem(pSystem), mpFrameDrawer(pFrameDrawer),mpMapDrawer(pMapDrawer), mpTracker(pTracking),
-    mbFinishRequested(false), mbFinished(true), mbStopped(true), mbStopRequested(false)
+    mbFinishRequested(false), mbFinished(true), mbStopped(true), mbStopRequested(false), mName(name)
 {
     if(settings){
         newParameterLoader(settings);
@@ -222,7 +222,7 @@ std::thread* Viewer::Start()
 
 void Viewer::Run()
 {
-    pangolin::CreateWindowAndBind("ORB-SLAM3: Map Viewer",1024,768);
+    pangolin::CreateWindowAndBind(mName + " ORB-SLAM3: Map Viewer", 1024, 768);
 
     // 3D Mouse handler requires depth testing to be enabled
     glEnable(GL_DEPTH_TEST);
@@ -264,7 +264,7 @@ void Viewer::Run()
     Twc.SetIdentity();
     pangolin::OpenGlMatrix Ow; // Oriented with g in the z axis
     Ow.SetIdentity();
-    cv::namedWindow("ORB-SLAM3: Current Frame");
+    cv::namedWindow(mName + " ORB-SLAM3: Current Frame");
 
     bool bFollow = true;
     bool bLocalizationMode = false;
@@ -395,7 +395,7 @@ void Viewer::Run()
             cv::resize(toShow, toShow, cv::Size(width, height));
         }
 
-        cv::imshow("ORB-SLAM3: Current Frame",toShow);
+        cv::imshow(mName + " ORB-SLAM3: Current Frame",toShow);
         cv::waitKey(mT);
 
         if(menuReset)
@@ -440,7 +440,7 @@ void Viewer::Run()
             break;
     }
 
-    cv::destroyWindow("ORB-SLAM3: Current Frame");
+    cv::destroyWindow(mName + " ORB-SLAM3: Current Frame");
     menuReset.Detach();
     menuLocalizationMode.Detach();
     menuShowInertialGraph.Detach();
@@ -450,7 +450,7 @@ void Viewer::Run()
     menuTopView.Detach();
     menuCamView.Detach();
     menuFollowCamera.Detach();
-    pangolin::DestroyWindow("ORB-SLAM3: Map Viewer");
+    pangolin::DestroyWindow(mName + " ORB-SLAM3: Map Viewer");
 
     SetFinish();
 }

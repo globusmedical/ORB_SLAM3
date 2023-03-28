@@ -39,7 +39,7 @@ class Viewer
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    Viewer(System* pSystem, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Tracking *pTracking, const std::string &strSettingPath, Settings* settings);
+    Viewer(System* pSystem, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Tracking *pTracking, const std::string &strSettingPath, Settings* settings, const std::string& name);
 
     void newParameterLoader(Settings* settings);
 
@@ -93,7 +93,7 @@ private:
     std::mutex mMutexStop;
 
     bool mbStopTrack;
-
+    std::string mName;
 };
 
 } // namespace ORB_SLAM3
