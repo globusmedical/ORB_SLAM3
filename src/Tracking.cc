@@ -1639,24 +1639,23 @@ bool Tracking::GetStepByStep()
 
 
 
-Sophus::optional<Sophus::SE3f> Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRectRight, const double &timestamp, string filename, const bool onlyInitWithDrb, const Eigen::Matrix4d &T_c_drb)
+Sophus::optional<Sophus::SE3f> Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRectRight, const double &timestamp, string filename, const Eigen::Matrix4d &Tcw_seed)
 {
     //cout << "GrabImageStereo" << endl;
 
     mImGray = imRectLeft;
     mImRight = imRectRight;
 
-    // DRB Seeding changes
-    mOnlyInitWithDrb = onlyInitWithDrb;
-    if (T_c_drb.isZero())
+    // Pose Seeding changes
+    if (Tcw_seed.isZero())
     {
-        mbHasDrbPose = false;
-        mT_c_drb = Sophus::SE3f();
+        mbHasSeedWorldPose = false;
+        mTcw_seed = Sophus::SE3f();
     }
     else
     {
-        mbHasDrbPose = true;
-        mT_c_drb = Sophus::SE3f(T_c_drb.cast<float>());
+        mbHasSeedWorldPose = true;
+        mTcw_seed = Sophus::SE3f(Tcw_seed.cast<float>());
     }
     
     if(mImGray.channels()==3)
@@ -2104,8 +2103,8 @@ void Tracking::Track()
     {
         if(mSensor==System::STEREO || mSensor==System::RGBD || mSensor==System::IMU_STEREO || mSensor==System::IMU_RGBD)
         {
-            // Pose Seeding: Start off with DRB pose if available
-            pCurrentMap->SetInitializedWithDRB(mbHasDrbPose);
+            // Pose Seeding: Start off with seed world pose if available
+            pCurrentMap->SetInitializedWithSeedWorldPose(mbHasSeedWorldPose);
             StereoInitialization();
         }
         else
@@ -2148,11 +2147,11 @@ void Tracking::Track()
                 // Local Mapping might have changed some MapPoints tracked in last frame
                 CheckReplacedInLastFrame();
                 
-                // This is where mTcw gets filled in. mTcw is set to mT_c_drb, if available, and the map points are created based on that
+                // This is where mTcw gets filled in. mTcw is set to mTcw_seed, if available, and the map points are created based on that
                 if((!mbVelocity && !pCurrentMap->isImuInitialized()) || mCurrentFrame.mnId<mnLastRelocFrameId+2)
                 {
                     Verbose::PrintMess("TRACK: Track with respect to the reference KF ", Verbose::VERBOSITY_DEBUG);
-                    // The pose is computed with respect to the reference frame if mT_c_drb is not available. 
+                    // The pose is computed with respect to the reference frame if mTcw_seed is not available. 
                     // The pose of the current frame is optimized by minimizing reprojection errors for a stereo system.
                     bOK = TrackReferenceKeyFrame();
                 }
@@ -2543,7 +2542,7 @@ void Tracking::Track()
 
 void Tracking::StereoInitialization()
 {
-    bool okayToInitialize = (mOnlyInitWithDrb && mbHasDrbPose && mCurrentFrame.N > 100) || (!mOnlyInitWithDrb && mCurrentFrame.N > 300);
+    bool okayToInitialize = (mbHasSeedWorldPose && mCurrentFrame.N > 100) || (mCurrentFrame.N > 300);
     if(okayToInitialize)
     {
         if (mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
@@ -2578,9 +2577,9 @@ void Tracking::StereoInitialization()
         }
         else
         {
-            // mT_c_drb is the DRB pose in the camera coordinate system, if available.
+            // mTcw_seed is the seed world pose in the camera coordinate system, if available.
             // If not available, it is set to the origin ie. Identity.
-            mCurrentFrame.SetPose(mT_c_drb);
+            mCurrentFrame.SetPose(mTcw_seed);
         }
 
         // Create KeyFrame
@@ -2932,11 +2931,10 @@ void Tracking::CheckReplacedInLastFrame()
 
 
 // The map points have uncertainties/information, but the pose itself
-// doesn't in this optimization. It is either fixed or not fixed. But 
-// I believe there should be a way to give information matrix to poses
+// doesn't in this optimization. It is either fixed or not fixed
 bool Tracking::TrackReferenceKeyFrame()
 {
-    bool fixPoseWithDRB = (mpAtlas->GetCurrentMap()->IsInitializedWithDRB() && mbHasDrbPose);
+    bool fixWorldPoseWithSeed = (mpAtlas->GetCurrentMap()->IsInitializedWithSeedWorldPose() && mbHasSeedWorldPose);
     // Compute Bag of Words vector
     mCurrentFrame.ComputeBoW();
 
@@ -2947,8 +2945,8 @@ bool Tracking::TrackReferenceKeyFrame()
 
     int nmatches = matcher.SearchByBoW(mpReferenceKF,mCurrentFrame,vpMapPointMatches);
 
-    // TODO: Change nnmatches for the drb tracked case
-    if ((!fixPoseWithDRB && nmatches < 15) || (fixPoseWithDRB && nmatches < 15))
+    // TODO: Change nmatches for the seed world pose case
+    if ((!fixWorldPoseWithSeed && nmatches < 15) || (fixWorldPoseWithSeed && nmatches < 15))
     {
         cout << "TRACK_REF_KF: Less than 15 matches!!\n";
         return false;
@@ -2956,8 +2954,8 @@ bool Tracking::TrackReferenceKeyFrame()
 
     mCurrentFrame.mvpMapPoints = vpMapPointMatches;
     
-    if(fixPoseWithDRB)
-        mCurrentFrame.SetPose(mT_c_drb);
+    if(fixWorldPoseWithSeed)
+        mCurrentFrame.SetPose(mTcw_seed);
     else
         mCurrentFrame.SetPose(mLastFrame.GetPose());
 
@@ -2965,7 +2963,7 @@ bool Tracking::TrackReferenceKeyFrame()
 
 
     // cout << " TrackReferenceKeyFrame mLastFrame.mTcw:  " << mLastFrame.mTcw << endl;
-    Optimizer::PoseOptimization(&mCurrentFrame, fixPoseWithDRB);
+    Optimizer::PoseOptimization(&mCurrentFrame, fixWorldPoseWithSeed);
 
     // Discard outliers
     int nmatchesMap = 0;
@@ -3076,7 +3074,7 @@ void Tracking::UpdateLastFrame()
 
 bool Tracking::TrackWithMotionModel()
 {
-    bool fixPoseWithDRB = (mpAtlas->GetCurrentMap()->IsInitializedWithDRB() && mbHasDrbPose);
+    bool fixWorldPoseWithSeed = (mpAtlas->GetCurrentMap()->IsInitializedWithSeedWorldPose() && mbHasSeedWorldPose);
     ORBmatcher matcher(0.9,true);
 
     // Update last frame pose according to its reference keyframe
@@ -3091,8 +3089,8 @@ bool Tracking::TrackWithMotionModel()
     }
     else
     {
-        if (fixPoseWithDRB)
-            mCurrentFrame.SetPose(mT_c_drb);
+        if (fixWorldPoseWithSeed)
+            mCurrentFrame.SetPose(mTcw_seed);
         else
             mCurrentFrame.SetPose(mVelocity * mLastFrame.GetPose());
     }
@@ -3110,8 +3108,8 @@ bool Tracking::TrackWithMotionModel()
     int nmatches = matcher.SearchByProjection(mCurrentFrame,mLastFrame,th,mSensor==System::MONOCULAR || mSensor==System::IMU_MONOCULAR);
 
     // If few matches, uses a wider window search
-    // TODO: tune nmatches for the drb case
-    if((!fixPoseWithDRB && nmatches < 20) || (fixPoseWithDRB && nmatches < 10))
+    // TODO: tune nmatches for the seed world pose case
+    if((!fixWorldPoseWithSeed && nmatches < 20) || (fixWorldPoseWithSeed && nmatches < 10))
     {
         Verbose::PrintMess("Not enough matches, wider window search!!", Verbose::VERBOSITY_NORMAL);
         fill(mCurrentFrame.mvpMapPoints.begin(),mCurrentFrame.mvpMapPoints.end(), nullptr);
@@ -3121,8 +3119,8 @@ bool Tracking::TrackWithMotionModel()
 
     }
 
-    // TODO: tune nmatches for the drb case
-    if ((!fixPoseWithDRB && nmatches < 20) || (fixPoseWithDRB && nmatches < 10))
+    // TODO: tune nmatches for the seed world pose case
+    if ((!fixWorldPoseWithSeed && nmatches < 20) || (fixWorldPoseWithSeed && nmatches < 10))
     {
         Verbose::PrintMess("Not enough matches!!", Verbose::VERBOSITY_NORMAL);
         if (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
@@ -3132,7 +3130,7 @@ bool Tracking::TrackWithMotionModel()
     }
 
     // Optimize frame pose with all matches
-    Optimizer::PoseOptimization(&mCurrentFrame, fixPoseWithDRB);
+    Optimizer::PoseOptimization(&mCurrentFrame, fixWorldPoseWithSeed);
 
     // Discard outliers
     int nmatchesMap = 0;
@@ -3166,7 +3164,7 @@ bool Tracking::TrackWithMotionModel()
         return nmatches>20;
     }
 
-    if (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD/* || fixPoseWithDRB*/)
+    if (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD/* || fixWorldPoseWithSeed*/)
         return true;
     else
         return nmatchesMap>=10;
@@ -3174,7 +3172,7 @@ bool Tracking::TrackWithMotionModel()
 
 bool Tracking::TrackLocalMap()
 {
-    bool fixPoseWithDRB = (mpAtlas->GetCurrentMap()->IsInitializedWithDRB() && mbHasDrbPose);
+    bool fixWorldPoseWithSeed = (mpAtlas->GetCurrentMap()->IsInitializedWithSeedWorldPose() && mbHasSeedWorldPose);
     // We have an estimation of the camera pose and some map points tracked in the frame.
     // We retrieve the local map and try to find matches to points in the local map.
     mTrackedFr++;
@@ -3194,13 +3192,13 @@ bool Tracking::TrackLocalMap()
 
     int inliers;
     if (!mpAtlas->isImuInitialized())
-        Optimizer::PoseOptimization(&mCurrentFrame, fixPoseWithDRB && false);
+        Optimizer::PoseOptimization(&mCurrentFrame, fixWorldPoseWithSeed && false);
     else
     {
         if(mCurrentFrame.mnId<=mnLastRelocFrameId+mnFramesToResetIMU)
         {
             Verbose::PrintMess("TLM: PoseOptimization ", Verbose::VERBOSITY_DEBUG);
-            Optimizer::PoseOptimization(&mCurrentFrame, fixPoseWithDRB && false);
+            Optimizer::PoseOptimization(&mCurrentFrame, fixWorldPoseWithSeed && false);
         }
         else
         {

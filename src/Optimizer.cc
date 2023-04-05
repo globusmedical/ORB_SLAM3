@@ -117,7 +117,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
         Sophus::SE3<float> Tcw = pKF->GetPose();
         vSE3->setEstimate(g2o::SE3Quat(Tcw.unit_quaternion().cast<double>(),Tcw.translation().cast<double>()));
         vSE3->setId(pKF->mnId);
-        // Check if we can add DRB poses to be fixed too
+        // Check if we can add seed world poses to be fixed too
         vSE3->setFixed(pKF->mnId==pMap->GetInitKFid());
         optimizer.addVertex(vSE3);
         if(pKF->mnId>maxKFid)
@@ -826,7 +826,7 @@ int Optimizer::PoseOptimization(Frame *pFrame, bool fixPose)
     Sophus::SE3<float> Tcw = pFrame->GetPose();
     vSE3->setEstimate(g2o::SE3Quat(Tcw.unit_quaternion().cast<double>(),Tcw.translation().cast<double>()));
     vSE3->setId(0);
-    // Check if we can add DRB poses to be fixed too
+    // Check if we can add seed world poses to be fixed too
     vSE3->setFixed(fixPose);
     optimizer.addVertex(vSE3);
     
@@ -1214,7 +1214,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         Sophus::SE3<float> Tcw = pKFi->GetPose();
         vSE3->setEstimate(g2o::SE3Quat(Tcw.unit_quaternion().cast<double>(), Tcw.translation().cast<double>()));
         vSE3->setId(pKFi->mnId);
-        // Check if we can add DRB poses to be fixed too
+        // Check if we can add seed world poses to be fixed too
         vSE3->setFixed(pKFi->mnId==pMap->GetInitKFid());
         optimizer.addVertex(vSE3);
         if(pKFi->mnId>maxKFid)
@@ -1232,7 +1232,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         Sophus::SE3<float> Tcw = pKFi->GetPose();
         vSE3->setEstimate(g2o::SE3Quat(Tcw.unit_quaternion().cast<double>(),Tcw.translation().cast<double>()));
         vSE3->setId(pKFi->mnId);
-        // Check if we can add DRB poses to be fixed too
+        // Check if we can add seed world poses to be fixed too
         vSE3->setFixed(true);
         optimizer.addVertex(vSE3);
         if(pKFi->mnId>maxKFid)
@@ -1553,7 +1553,7 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
             VSim3->setEstimate(Siw);
         }
 
-        // Check if we can add DRB poses to be fixed too
+        // Check if we can add seed world poses to be fixed too
         if(pKF->mnId==pMap->GetInitKFid())
             VSim3->setFixed(true);
 
@@ -1828,7 +1828,7 @@ void Optimizer::OptimizeEssentialGraph(KeyFrame* pCurKF, vector<KeyFrame*> &vpFi
         VSim3->setEstimate(Siw);
 
         VSim3->setFixed(true);
-        // Check if we can add DRB poses to be fixed too
+        // Check if we can add seed world poses to be fixed too
 
         VSim3->setId(nIDi);
         VSim3->setMarginalized(false);
@@ -1863,7 +1863,7 @@ void Optimizer::OptimizeEssentialGraph(KeyFrame* pCurKF, vector<KeyFrame*> &vpFi
         vScw[nIDi] = g2o::Sim3(Tcw_bef.unit_quaternion(),Tcw_bef.translation(),1.0);
 
         VSim3->setFixed(true);
-        // Check if we can add DRB poses to be fixed too
+        // Check if we can add seed world poses to be fixed too
 
         VSim3->setId(nIDi);
         VSim3->setMarginalized(false);
@@ -1897,7 +1897,7 @@ void Optimizer::OptimizeEssentialGraph(KeyFrame* pCurKF, vector<KeyFrame*> &vpFi
         VSim3->setEstimate(Siw);
 
         VSim3->setFixed(false);
-        // Check if we can add DRB poses to be fixed too
+        // Check if we can add seed world poses to be fixed too
 
         VSim3->setId(nIDi);
         VSim3->setMarginalized(false);
@@ -2140,7 +2140,7 @@ int Optimizer::OptimizeSim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint *> &
     vSim3->setEstimate(g2oS12);
     vSim3->setId(0);
     vSim3->setFixed(false);
-    // Check if we can add DRB poses to be fixed too
+    // Check if we can add seed world poses to be fixed too
     vSim3->pCamera1 = pKF1->mpCamera;
     vSim3->pCamera2 = pKF2->mpCamera;
     optimizer.addVertex(vSim3);
@@ -2193,7 +2193,7 @@ int Optimizer::OptimizeSim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint *> &
                 P3D1c = R1w*P3D1w + t1w;
                 vPoint1->setEstimate(P3D1c.cast<double>());
                 vPoint1->setId(id1);
-                // Check if we can add DRB poses to be fixed too
+                // Check if we can add seed world poses to be fixed too
                 vPoint1->setFixed(true);
                 optimizer.addVertex(vPoint1);
 
@@ -2202,7 +2202,7 @@ int Optimizer::OptimizeSim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint *> &
                 P3D2c = R2w*P3D2w + t2w;
                 vPoint2->setEstimate(P3D2c.cast<double>());
                 vPoint2->setId(id2);
-                // Check if we can add DRB poses to be fixed too
+                // Check if we can add seed world poses to be fixed too
                 vPoint2->setFixed(true);
                 optimizer.addVertex(vPoint2);
             }
@@ -2225,7 +2225,7 @@ int Optimizer::OptimizeSim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint *> &
                 vPoint2->setEstimate(P3D2c.cast<double>());
                 vPoint2->setId(id2);
                 vPoint2->setFixed(true);
-                // Check if we can add DRB poses to be fixed too
+                // Check if we can add seed world poses to be fixed too
                 optimizer.addVertex(vPoint2);
 
                 vIdsOnlyInKF2.push_back(id2);
@@ -5359,7 +5359,7 @@ void Optimizer::OptimizeEssentialGraph4DoF(Map* pMap, KeyFrame* pLoopKF, KeyFram
 
         if(pKF==pLoopKF)
             V4DoF->setFixed(true);
-        // Check if we can add DRB poses to be fixed too
+        // Check if we can add seed world poses to be fixed too
 
         V4DoF->setId(nIDi);
         V4DoF->setMarginalized(false);

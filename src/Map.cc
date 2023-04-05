@@ -30,7 +30,7 @@ long unsigned int Map::nNextId=0;
 
 Map::Map() : mpFirstRegionKF(nullptr), mbFail(false), mbImuInitialized(false), mnMapChange(0), mnMapChangeNotified(0), mnMaxKFid(0),
              mnBigChangeIdx(0), mIsInUse(false), mHasTumbnail(false), mbBad(false), mbIsInertial(false), mbIMU_BA1(false), mbIMU_BA2(false),
-             mbIsInitializedWithDRB(false)
+             mbIsInitializedWithSeedWorldPose(false)
 {
     mnId=nNextId++;
     mThumbnail = nullptr;
@@ -39,7 +39,7 @@ Map::Map() : mpFirstRegionKF(nullptr), mbFail(false), mbImuInitialized(false), m
 Map::Map(int initKFid) : mpFirstRegionKF(nullptr), mbFail(false), mbImuInitialized(false), mnMapChange(0), mnMapChangeNotified(0),
                          mnInitKFid(initKFid), /*mnLastLoopKFid(initKFid),*/ mnMaxKFid(initKFid), mnBigChangeIdx(0),
                          mIsInUse(false), mHasTumbnail(false), mbBad(false), mbIsInertial(false), mbIMU_BA1(false), mbIMU_BA2(false),
-                         mbIsInitializedWithDRB(false)
+                         mbIsInitializedWithSeedWorldPose(false)
 {
     mnId=nNextId++;
     mThumbnail = nullptr;
@@ -494,14 +494,14 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc/*, map<long u
     mvpBackupMapPoints.clear();
 }
 
-void Map::SetInitializedWithDRB(bool initializeWithDRB)
+void Map::SetInitializedWithSeedWorldPose(bool initializeWithSeedWorldPose)
 {
-    mbIsInitializedWithDRB = initializeWithDRB;
+    mbIsInitializedWithSeedWorldPose = initializeWithSeedWorldPose;
 }
 
-bool Map::IsInitializedWithDRB()
+bool Map::IsInitializedWithSeedWorldPose()
 {
-    return mbIsInitializedWithDRB;
+    return mbIsInitializedWithSeedWorldPose;
 }
 
 } //namespace ORB_SLAM3
