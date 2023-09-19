@@ -75,7 +75,7 @@ class Map
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     Map();
-    Map(int initKFid);
+    Map(long unsigned int id, int initKFid);
     ~Map();
 
     void AddKeyFrame(KeyFrame* pKF);
@@ -147,14 +147,13 @@ public:
 
     // This avoid that two points are created simultaneously in separate threads (id conflict)
     std::mutex mMutexPointCreation;
+    long unsigned int mNextMapPointId{};
 
     bool mbFail;
 
     // Size of the thumbnail (always in power of 2)
     static const int THUMB_WIDTH = 512;
     static const int THUMB_HEIGHT = 512;
-
-    static long unsigned int nNextId;
 
     // DEBUG: show KFs which are used in LBA
     std::set<long unsigned int> msOptKFs;

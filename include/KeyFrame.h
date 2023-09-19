@@ -307,7 +307,6 @@ public:
     // The following variables are accesed from only 1 thread or never change (no mutex needed).
 public:
 
-    static long unsigned int nNextId;
     long unsigned int mnId;
     const long unsigned int mnFrameId;
 

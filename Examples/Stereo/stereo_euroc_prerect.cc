@@ -91,7 +91,7 @@ int main(int argc, char **argv)
         string pathDrbPoses = pathSeq + "/poses.txt";
 
         LoadImages(pathCam0, pathCam1, pathTimeStamps, vstrImageLeft[seq], vstrImageRight[seq], vTimestampsCam[seq]);
-        LoadDRBPoses(pathDrbPoses, drbPoses);
+        //LoadDRBPoses(pathDrbPoses, drbPoses);
         
         cout << "LOADED!" << endl;
 
@@ -210,6 +210,7 @@ int main(int argc, char **argv)
     SLAM.Shutdown();
 
     // Save camera trajectory
+#if 0
     if (bFileName)
     {
         const string kf_file =  "kf_" + string(argv[argc-1]) + ".txt";
@@ -222,7 +223,7 @@ int main(int argc, char **argv)
         SLAM.SaveTrajectoryEuRoC("CameraTrajectory.txt");
         SLAM.SaveKeyFrameTrajectoryEuRoC("KeyFrameTrajectory.txt");
     }
-
+#endif
     return 0;
 }
 

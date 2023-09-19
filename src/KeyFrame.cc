@@ -35,8 +35,6 @@ using namespace std;
 namespace ORB_SLAM3
 {
 
-long unsigned int KeyFrame::nNextId=0;
-
 KeyFrame::KeyFrame():
         mnFrameId(0),  mTimeStamp(0), mnGridCols(FRAME_GRID_COLS), mnGridRows(FRAME_GRID_ROWS),
         mfGridElementWidthInv(0), mfGridElementHeightInv(0),
@@ -71,7 +69,7 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     mvLeftToRightMatch(F.mvLeftToRightMatch),mvRightToLeftMatch(F.mvRightToLeftMatch), mTlr(F.GetRelativePoseTlr()),
     mvKeysRight(F.mvKeysRight), NLeft(F.Nleft), NRight(F.Nright), mTrl(F.GetRelativePoseTrl()), mnNumberOfOpt(0), mbHasVelocity(false)
 {
-    mnId=nNextId++;
+    mnId=pKFDB->mNextKeyFrameId++;
 
     mGrid = F.mGrid;
     mGridRight = F.mGridRight;

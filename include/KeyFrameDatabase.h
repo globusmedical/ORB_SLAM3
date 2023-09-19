@@ -74,6 +74,8 @@ public:
     void PostLoad(std::map<long unsigned int, KeyFrame*> mpKFid);
     void SetORBVocabulary(ORBVocabulary* pORBVoc);
 
+    long unsigned int mNextKeyFrameId{};
+
 protected:
 
    // Associated vocabulary

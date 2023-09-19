@@ -58,12 +58,12 @@ class Atlas
         //ar & mspMaps;
         ar & mvpBackupMaps;
         ar & mvpCameras;
-        // Need to save/load the static Id from Frame, KeyFrame, MapPoint and Map
-        ar & Map::nNextId;
-        ar & Frame::nNextId;
-        ar & KeyFrame::nNextId;
-        ar & MapPoint::nNextId;
-        ar & GeometricCamera::nNextId;
+        // FIXME: Need to save/load the static Id from Frame, KeyFrame, MapPoint and Map
+        //ar & Map::nNextId;
+        //ar & Frame::nNextId;
+        //ar & KeyFrame::nNextId;
+        //ar & MapPoint::nNextId;
+        //ar & GeometricCamera::nNextId;
         ar & mnLastInitKFidMap;
     }
 
@@ -160,6 +160,10 @@ protected:
     // Mutex
     std::mutex mMutexAtlas;
 
+
+private:
+
+    long unsigned int mNextMapId{};
 
 }; // class Atlas
 

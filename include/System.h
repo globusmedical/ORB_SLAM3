@@ -200,6 +200,8 @@ private:
 
     std::string CalculateCheckSum(std::string filename, int type);
 
+    int mLastBigChangeIdx{};
+
     // Input sensor
     eSensor mSensor;
 

@@ -529,11 +529,10 @@ void System::DeactivateLocalizationMode()
 
 bool System::MapChanged()
 {
-    static int n=0;
     int curn = mpAtlas->GetLastBigChangeIdx();
-    if(n<curn)
+    if(mLastBigChangeIdx<curn)
     {
-        n=curn;
+        mLastBigChangeIdx=curn;
         return true;
     }
     else

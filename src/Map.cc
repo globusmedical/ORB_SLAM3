@@ -26,23 +26,17 @@ using namespace std;
 namespace ORB_SLAM3
 {
 
-long unsigned int Map::nNextId=0;
-
-Map::Map() : mpFirstRegionKF(nullptr), mbFail(false), mbImuInitialized(false), mnMapChange(0), mnMapChangeNotified(0), mnMaxKFid(0),
+Map::Map() : mpFirstRegionKF(nullptr), mbFail(false), mnId(0), mbImuInitialized(false), mnMapChange(0), mnMapChangeNotified(0), mnMaxKFid(0),
              mnBigChangeIdx(0), mIsInUse(false), mHasTumbnail(false), mbBad(false), mbIsInertial(false), mbIMU_BA1(false), mbIMU_BA2(false),
-             mbIsInitializedWithSeedWorldPose(false)
+             mbIsInitializedWithSeedWorldPose(false), mThumbnail(nullptr)
 {
-    mnId=nNextId++;
-    mThumbnail = nullptr;
 }
 
-Map::Map(int initKFid) : mpFirstRegionKF(nullptr), mbFail(false), mbImuInitialized(false), mnMapChange(0), mnMapChangeNotified(0),
-                         mnInitKFid(initKFid), /*mnLastLoopKFid(initKFid),*/ mnMaxKFid(initKFid), mnBigChangeIdx(0),
-                         mIsInUse(false), mHasTumbnail(false), mbBad(false), mbIsInertial(false), mbIMU_BA1(false), mbIMU_BA2(false),
-                         mbIsInitializedWithSeedWorldPose(false)
+Map::Map(long unsigned int id, int initKFid) : mpFirstRegionKF(nullptr), mbFail(false), mnId(id), mbImuInitialized(false), mnMapChange(0), mnMapChangeNotified(0),
+                                               mnInitKFid(initKFid), /*mnLastLoopKFid(initKFid),*/ mnMaxKFid(initKFid), mnBigChangeIdx(0),
+                                               mIsInUse(false), mHasTumbnail(false), mbBad(false), mbIsInertial(false), mbIMU_BA1(false), mbIMU_BA2(false),
+                                               mbIsInitializedWithSeedWorldPose(false), mThumbnail(nullptr)
 {
-    mnId=nNextId++;
-    mThumbnail = nullptr;
 }
 
 Map::~Map()

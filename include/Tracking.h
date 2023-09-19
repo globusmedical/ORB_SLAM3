@@ -315,6 +315,7 @@ protected:
     double mTimeStampLost;
     double time_recently_lost;
 
+    long unsigned int mNextFrameId{};
     unsigned int mnFirstFrameId;
     unsigned int mnInitialFrameId;
     unsigned int mnLastInitFrameId;
