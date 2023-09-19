@@ -3896,6 +3896,7 @@ bool Tracking::Relocalization()
 
     while(nCandidates>0 && !bMatch)
     {
+        int oldCandidates = nCandidates;
         for(int i=0; i<nKFs; i++)
         {
             if(vbDiscarded[i])
@@ -3989,6 +3990,7 @@ bool Tracking::Relocalization()
                 }
             }
         }
+        if (nCandidates == oldCandidates) break;
     }
 
     if(!bMatch)
